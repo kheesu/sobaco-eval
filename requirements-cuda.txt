@@ -1,0 +1,14 @@
+# Installation instructions for CUDA-enabled PyTorch
+# Choose the appropriate command based on your CUDA version
+
+# For CUDA 11.8 (most common)
+pip install torch>=2.0.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# For CUDA 12.1 (newer systems)
+pip install torch>=2.0.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Then install the rest of the dependencies
+pip install -r requirements.txt
+
+# To check if CUDA is available after installation:
+# python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
