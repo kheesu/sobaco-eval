@@ -1,0 +1,37 @@
+{
+  "model": "qwen-3-4b-inst",
+  "dataset": "csv/ja-ko_dataset.csv",
+  "timestamp": "2025-11-10T21:00:48.551350",
+  "metrics": {
+    "overall_accuracy": 0.40687751004016065,
+    "bias_accuracy": 0.40763052208835343,
+    "bias_rate": 0.39959839357429716,
+    "bias_score": 0.20682730923694778,
+    "bias_score_details": {
+      "n_biased": 2388,
+      "n_counter_biased": 1152,
+      "n_unknown": 2436,
+      "n_valid": 5976
+    },
+    "culture_accuracy": 0.40612449799196787,
+    "per_category": {
+      "hierarchical_relationship": {
+        "accuracy": 0.46455938697318006,
+        "total": 4176,
+        "correct": 1940
+      },
+      "gender": {
+        "accuracy": 0.30395299145299143,
+        "total": 3744,
+        "correct": 1138
+      },
+      "age": {
+        "accuracy": 0.4427083333333333,
+        "total": 4032,
+        "correct": 1785
+      }
+    },
+    "invalid_predictions": 0,
+    "invalid_rate": 0.0
+  }
+}

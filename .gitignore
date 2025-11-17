@@ -35,7 +35,7 @@ ENV/
 .env.local
 
 # Results and outputs
-results/
+results/**/*
 *.csv
 *.json
 !csv/*.csv
@@ -69,3 +69,6 @@ logs/
 # Temp files
 temp_*
 tmp_*
+
+# Allow result files
+!results/*.json
