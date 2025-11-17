@@ -127,27 +127,6 @@ sobaco-eval/
 └── notebooks/               # Example notebooks
 ```
 
-## 🔬 Example Notebook
-
-See `notebooks/evaluation_demo.ipynb` for a step-by-step walkthrough of:
-1. Loading and exploring datasets
-2. Running evaluations on sample data
-3. Analyzing bias patterns
-4. Visualizing results
-
-## 📝 Citation
-
-If you use this evaluation framework in your research, please cite:
-
-```bibtex
-@software{sobaco_eval,
-  title={SOBACO-EVAL: Social Bias and Cultural Awareness Evaluation},
-  author={Your Name},
-  year={2025},
-  url={https://github.com/kheesu/sobaco-eval}
-}
-```
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
