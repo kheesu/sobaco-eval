@@ -6,6 +6,7 @@ Evaluates LLMs on social bias and cultural awareness datasets
 import argparse
 import json
 import os
+import random
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -14,7 +15,7 @@ from tqdm import tqdm
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import warnings
-
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
@@ -72,7 +73,8 @@ class LLMEvaluator:
         if hasattr(self, 'model') and self.model is not None:
             del self.model
             del self.tokenizer
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
 
 class LocalModelEvaluator(LLMEvaluator):
@@ -85,6 +87,10 @@ class LocalModelEvaluator(LLMEvaluator):
         
         print(f"Loading model: {model_path}")
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        
+        # Set padding token if not set
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
         
         load_kwargs = {
             'pretrained_model_name_or_path': model_path,
@@ -107,10 +113,8 @@ class LocalModelEvaluator(LLMEvaluator):
         
         if has_chat_template:
             # Format messages for chat models
-            messages = []
-            if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
+            # Only include user message, no system prompt
+            messages = [{"role": "user", "content": prompt}]
             
             # Apply chat template
             formatted_prompt = self.tokenizer.apply_chat_template(
@@ -119,14 +123,17 @@ class LocalModelEvaluator(LLMEvaluator):
                 add_generation_prompt=True
             )
         else:
-            # Base model without chat template - use simple concatenation
-            if system_prompt:
-                formatted_prompt = f"{system_prompt}\n\n{prompt}"
-            else:
-                formatted_prompt = prompt
+            # Base model without chat template - use prompt directly
+            formatted_prompt = prompt
         
-        # Tokenize
-        inputs = self.tokenizer(formatted_prompt, return_tensors="pt")
+        # Tokenize with truncation and padding to prevent CUDA errors
+        inputs = self.tokenizer(
+            formatted_prompt, 
+            return_tensors="pt",
+            truncation=True,
+            max_length=2048,  # Prevent overly long inputs
+            padding=False
+        )
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
         
         # Generate
@@ -137,7 +144,8 @@ class LocalModelEvaluator(LLMEvaluator):
                 temperature=model_config.get('temperature', 0.1),
                 top_p=model_config.get('top_p', 0.95),
                 do_sample=True,
-                pad_token_id=self.tokenizer.eos_token_id,
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
             )
         
         # Decode only the generated part
@@ -189,10 +197,8 @@ class APIModelEvaluator(LLMEvaluator):
         
         try:
             if provider == 'openai':
-                messages = []
-                if system_prompt:
-                    messages.append({"role": "system", "content": system_prompt})
-                messages.append({"role": "user", "content": prompt})
+                # Only use user message, no system prompt
+                messages = [{"role": "user", "content": prompt}]
                 
                 response = self.client.chat.completions.create(
                     model=model_config['model_name'],
@@ -203,20 +209,20 @@ class APIModelEvaluator(LLMEvaluator):
                 return response.choices[0].message.content.strip()
                 
             elif provider == 'anthropic':
+                # Only use user message, no system prompt
                 response = self.client.messages.create(
                     model=model_config['model_name'],
                     max_tokens=model_config.get('max_tokens', 100),
                     temperature=model_config.get('temperature', 0.1),
-                    system=system_prompt if system_prompt else "",
                     messages=[{"role": "user", "content": prompt}]
                 )
                 return response.content[0].text.strip()
                 
             elif provider == 'google':
+                # Use prompt directly without system prompt
                 model = self.client.GenerativeModel(model_config['model_name'])
-                full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
                 response = model.generate_content(
-                    full_prompt,
+                    prompt,
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=model_config.get('max_tokens', 100),
                         temperature=model_config.get('temperature', 0.1),
@@ -252,14 +258,26 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
         df = df.head(subset_size).copy()
         print(f"Using subset: {subset_size} samples ({subset_percent*100:.0f}% of {original_size})")
     
-    # Determine language and get appropriate system prompt and format template
+    # Determine language and randomly select one of the three format templates
     language = get_dataset_language(dataset_path)
-    system_prompt_key = f"system_prompt_{language}"
-    system_prompt = config['prompts'].get(system_prompt_key, config['prompts']['system_prompt'])
     
-    # Get language-specific format template if available
-    format_template_key = f"format_template_{language}"
-    prompt_template = config['prompts'].get(format_template_key, config['prompts']['format_template'])
+    # Get all available format templates for the language
+    template_variants = []
+    for i in range(1, 4):  # Try templates 1, 2, 3
+        template_key = f"format_template_{language}_{i}"
+        if template_key in config['prompts']:
+            template_variants.append(config['prompts'][template_key])
+    
+    # If no language-specific templates found, use default
+    if not template_variants:
+        prompt_template = config['prompts'].get('format_template', '')
+    else:
+        # Randomly select one of the available templates
+        prompt_template = random.choice(template_variants)
+        print(f"Using format template variant for {language} (randomly selected from {len(template_variants)} options)")
+    
+    # No system prompt is used
+    system_prompt = None
     
     # Add columns for predictions
     df['prediction'] = None
