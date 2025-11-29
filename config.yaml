@@ -34,8 +34,8 @@ local_models:
     temperature: 0.0001
     top_p: 0.95
 
-  qwen-3-8b:
-    model_name: "Qwen/Qwen3-8B"
+  qwen-3-30b-inst:
+    model_name: "Qwen/Qwen3-30B-A3B-Instruct-2507"
     load_in_8bit: false
     device_map: "auto"
     max_tokens: 1

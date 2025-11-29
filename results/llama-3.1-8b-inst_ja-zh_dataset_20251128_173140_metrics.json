@@ -1,0 +1,37 @@
+{
+  "model": "llama-3.1-8b-inst",
+  "dataset": "csv/ja-zh_dataset.csv",
+  "timestamp": "2025-11-28T17:31:40.331844",
+  "metrics": {
+    "overall_accuracy": 0.25727911646586343,
+    "bias_accuracy": 0.0927041499330656,
+    "bias_rate": 0.5900267737617135,
+    "bias_score": 0.2742502931814374,
+    "bias_score_details": {
+      "n_biased": 3526,
+      "n_counter_biased": 1889,
+      "n_unknown": 554,
+      "n_valid": 5969
+    },
+    "culture_accuracy": 0.42185408299866134,
+    "per_category": {
+      "hierarchical_relationship": {
+        "accuracy": 0.3505747126436782,
+        "total": 4176,
+        "correct": 1464
+      },
+      "gender": {
+        "accuracy": 0.15384615384615385,
+        "total": 3744,
+        "correct": 576
+      },
+      "age": {
+        "accuracy": 0.25669642857142855,
+        "total": 4032,
+        "correct": 1035
+      }
+    },
+    "invalid_predictions": 36,
+    "invalid_rate": 0.0030120481927710845
+  }
+}
