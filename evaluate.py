@@ -258,23 +258,29 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
         df = df.head(subset_size).copy()
         print(f"Using subset: {subset_size} samples ({subset_percent*100:.0f}% of {original_size})")
     
-    # Determine language and randomly select one of the three format templates
+    # Determine target language for prompt selection
+    # For translated datasets (e.g., ko-jp), use the target language (ja)
     language = get_dataset_language(dataset_path)
     
-    # Get all available format templates for the language
+    # Get all available format templates for the target language
     template_variants = []
     for i in range(1, 4):  # Try templates 1, 2, 3
         template_key = f"format_template_{language}_{i}"
         if template_key in config['prompts']:
             template_variants.append(config['prompts'][template_key])
     
-    # If no language-specific templates found, use default
+    # If no language-specific templates found, try default template
     if not template_variants:
-        prompt_template = config['prompts'].get('format_template', '')
+        default_template = config['prompts'].get('format_template', '')
+        if default_template:
+            prompt_template = default_template
+            print(f"Warning: No {language}-specific templates found, using default template")
+        else:
+            raise ValueError(f"No format templates found for language '{language}' and no default template available")
     else:
         # Randomly select one of the available templates
         prompt_template = random.choice(template_variants)
-        print(f"Using format template variant for {language} (randomly selected from {len(template_variants)} options)")
+        print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
     
     # No system prompt is used
     system_prompt = None
