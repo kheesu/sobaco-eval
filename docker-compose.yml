@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # GPU-enabled service for running local models (requires NVIDIA GPU)
+  sobaco-eval-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CUDA_VERSION: "12.1.0"
+        INSTALL_CUDA: "true"
+    image: sobaco-eval:gpu
+    container_name: sobaco-eval-gpu
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-all}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    volumes:
+      - ./csv:/app/csv:ro
+      - ./results:/app/results
+      - ./config.yaml:/app/config.yaml
+      - ./notebooks:/app/notebooks
+      - huggingface-cache:/root/.cache/huggingface
+    working_dir: /app
+    command: ["python3", "evaluate.py", "--help"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # CPU-only service for API-based models (GPT, Claude, Gemini)
+  sobaco-eval-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CUDA_VERSION: "12.1.0"
+        INSTALL_CUDA: "false"
+    image: sobaco-eval:cpu
+    container_name: sobaco-eval-cpu
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    volumes:
+      - ./csv:/app/csv:ro
+      - ./results:/app/results
+      - ./config.yaml:/app/config.yaml
+      - ./notebooks:/app/notebooks
+    working_dir: /app
+    command: ["python3", "evaluate.py", "--help"]
+
+  # Jupyter notebook service for analysis
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CUDA_VERSION: "12.1.0"
+        INSTALL_CUDA: "false"
+    image: sobaco-eval:jupyter
+    container_name: sobaco-eval-jupyter
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    volumes:
+      - ./csv:/app/csv:ro
+      - ./results:/app/results
+      - ./config.yaml:/app/config.yaml
+      - ./notebooks:/app/notebooks
+      - .:/app
+    working_dir: /app
+    ports:
+      - "8888:8888"
+    command: ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+
+volumes:
+  huggingface-cache:
+    driver: local

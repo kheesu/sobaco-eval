@@ -242,14 +242,33 @@ def create_output_dir(base_dir: str = "results") -> Path:
 
 
 def get_dataset_language(csv_path: str) -> str:
-    """Determine dataset language from filename"""
+    """Determine target language from dataset filename
+    
+    For translated datasets (e.g., ja-ko, ko-jp), returns the target language.
+    For monolingual datasets (e.g., ja_dataset, ko_dataset), returns that language.
+    
+    Examples:
+        ja_dataset.csv -> 'ja'
+        ja-ko_dataset.csv -> 'ko' (Japanese to Korean)
+        ko-jp_dataset.csv -> 'ja' (Korean to Japanese)
+        zh-ko_dataset.csv -> 'ko' (Chinese to Korean)
+    """
     filename = Path(csv_path).stem.lower()
     
-    if 'ja-ko' in filename:
+    # Check for translated datasets (source-target pattern)
+    # Target language is after the hyphen
+    if 'ja-ko' in filename or 'zh-ko' in filename:
         return 'ko'
-    elif 'ja-zh' in filename:
+    elif 'ja-zh' in filename or 'ko-zh' in filename:
         return 'zh'
-    elif 'ja' in filename:
+    elif 'ko-jp' in filename or 'zh-jp' in filename:
+        return 'ja'
+    # Check for monolingual datasets
+    elif 'ko_dataset' in filename or filename.startswith('ko_'):
+        return 'ko'
+    elif 'zh_dataset' in filename or filename.startswith('zh_'):
+        return 'zh'
+    elif 'ja_dataset' in filename or filename.startswith('ja_'):
         return 'ja'
     else:
         return 'ja'  # default
