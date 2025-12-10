@@ -203,7 +203,7 @@ class APIModelEvaluator(LLMEvaluator):
                 response = self.client.chat.completions.create(
                     model=model_config['model_name'],
                     messages=messages,
-                    max_tokens=model_config.get('max_tokens', 100),
+                    #max_tokens=model_config.get('max_tokens', 100),
                     temperature=model_config.get('temperature', 0.1),
                 )
                 return response.choices[0].message.content.strip()

@@ -1,0 +1,37 @@
+{
+  "model": "gpt-5.1",
+  "dataset": "csv/ja-ko_dataset.csv",
+  "timestamp": "2025-12-09T20:20:25.277690",
+  "metrics": {
+    "overall_accuracy": 0.5882697456492637,
+    "bias_accuracy": 0.7230589022757697,
+    "bias_rate": 0.21569611780455153,
+    "bias_score": 0.15464435146443514,
+    "bias_score_details": {
+      "n_biased": 1289,
+      "n_counter_biased": 365,
+      "n_unknown": 4321,
+      "n_valid": 5975
+    },
+    "culture_accuracy": 0.4534805890227577,
+    "per_category": {
+      "hierarchical_relationship": {
+        "accuracy": 0.6472701149425287,
+        "total": 4176,
+        "correct": 2703
+      },
+      "gender": {
+        "accuracy": 0.5988247863247863,
+        "total": 3744,
+        "correct": 2242
+      },
+      "age": {
+        "accuracy": 0.5173611111111112,
+        "total": 4032,
+        "correct": 2086
+      }
+    },
+    "invalid_predictions": 1,
+    "invalid_rate": 8.366800535475234e-05
+  }
+}
