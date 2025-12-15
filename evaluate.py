@@ -15,6 +15,7 @@ from tqdm import tqdm
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import warnings
+import requests
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 # Load environment variables from .env file
 try:
@@ -235,6 +236,107 @@ class APIModelEvaluator(LLMEvaluator):
             return ""
 
 
+class OllamaModelEvaluator(LLMEvaluator):
+    """Evaluator for local models via Ollama API"""
+    
+    def __init__(self, model_name: str, config: Dict, ollama_url: str = "http://localhost:11434"):
+        super().__init__(model_name, config)
+        self.ollama_url = ollama_url
+        self.ollama_model_name = None
+        
+    def load_model(self):
+        """Initialize Ollama connection and verify model availability"""
+        model_config = self.config['local_models'][self.model_name]
+        
+        # Extract model name from Hugging Face path for Ollama
+        # e.g., "meta-llama/Meta-Llama-3.1-8B-Instruct" -> "llama3.1:8b-instruct"
+        hf_model_path = model_config['model_name']
+        
+        # Try to map common HF names to Ollama names
+        # User can also specify 'ollama_model_name' in config to override
+        if 'ollama_model_name' in model_config:
+            self.ollama_model_name = model_config['ollama_model_name']
+        else:
+            # Simple heuristic mapping
+            self.ollama_model_name = self._map_hf_to_ollama(hf_model_path)
+        
+        print(f"Using Ollama API at {self.ollama_url}")
+        print(f"Model: {self.ollama_model_name}")
+        
+        # Verify Ollama is running and model is available
+        try:
+            response = requests.get(f"{self.ollama_url}/api/tags", timeout=5)
+            response.raise_for_status()
+            available_models = [model['name'] for model in response.json().get('models', [])]
+            
+            # Check if exact model name exists
+            if self.ollama_model_name not in available_models:
+                print(f"Warning: Model '{self.ollama_model_name}' not found in Ollama.")
+                print(f"Available models: {available_models}")
+                print(f"Attempting to use anyway (Ollama might pull it automatically)")
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Could not connect to Ollama at {self.ollama_url}. "
+                                f"Make sure Ollama is running. Error: {e}")
+    
+    def _map_hf_to_ollama(self, hf_path: str) -> str:
+        """Map Hugging Face model path to Ollama model name"""
+        hf_path_lower = hf_path.lower()
+        
+        # Common mappings
+        if 'llama-3.1-8b-instruct' in hf_path_lower:
+            return 'llama3.1:8b-instruct'
+        elif 'llama-3.1-8b' in hf_path_lower:
+            return 'llama3.1:8b'
+        elif 'llama-3.1-70b-instruct' in hf_path_lower:
+            return 'llama3.1:70b-instruct'
+        elif 'llama-3.1-70b' in hf_path_lower:
+            return 'llama3.1:70b'
+        elif 'qwen' in hf_path_lower and '4b' in hf_path_lower:
+            return 'qwen2.5:4b'
+        elif 'qwen' in hf_path_lower and '30b' in hf_path_lower:
+            return 'qwen2.5:30b'
+        else:
+            # Fallback: use the last part of the path
+            model_name = hf_path.split('/')[-1].lower()
+            print(f"Warning: Could not auto-map '{hf_path}' to Ollama model.")
+            print(f"Using '{model_name}' - you may need to add 'ollama_model_name' to config.yaml")
+            return model_name
+    
+    def generate(self, prompt: str, system_prompt: str = None) -> str:
+        """Generate response using Ollama API"""
+        model_config = self.config['local_models'][self.model_name]
+        
+        # Prepare request payload
+        payload = {
+            "model": self.ollama_model_name,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": model_config.get('temperature', 0.1),
+                "top_p": model_config.get('top_p', 0.95),
+                "num_predict": model_config.get('max_tokens', 100),
+            }
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.ollama_url}/api/generate",
+                json=payload,
+                timeout=120  # 2 minute timeout for generation
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result.get('response', '').strip()
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Error calling Ollama API: {e}")
+            return ""
+    
+    def unload_model(self):
+        """No need to unload for API-based models"""
+        print(f"Finished using Ollama model: {self.ollama_model_name}")
+
+
 def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None) -> pd.DataFrame:
     """
     Evaluate model on a dataset
@@ -330,6 +432,10 @@ def main():
     parser.add_argument('--output-dir', type=str, help='Override output directory')
     parser.add_argument('--subset', type=float, default=None, 
                        help='Evaluate on a subset of the data (e.g., 0.1 for 10%%, 0.2 for 20%%)')
+    parser.add_argument('--use-ollama', action='store_true', 
+                       help='Use Ollama API for local models instead of loading them directly')
+    parser.add_argument('--ollama-url', type=str, default='http://localhost:11434',
+                       help='Ollama server URL (default: http://localhost:11434)')
     
     args = parser.parse_args()
     
@@ -351,6 +457,8 @@ def main():
     
     print(f"Will evaluate on {len(datasets)} dataset(s): {[d.name for d in datasets]}")
     print(f"Models to evaluate: {args.model}")
+    if args.use_ollama:
+        print(f"Using Ollama API at {args.ollama_url}")
     
     # Evaluate each model on each dataset
     for model_name in args.model:
@@ -360,7 +468,12 @@ def main():
         
         # Determine if local or API model
         if model_name in config.get('local_models', {}):
-            evaluator = LocalModelEvaluator(model_name, config)
+            if args.use_ollama:
+                # Use Ollama API for local models
+                evaluator = OllamaModelEvaluator(model_name, config, args.ollama_url)
+            else:
+                # Load model directly with Hugging Face
+                evaluator = LocalModelEvaluator(model_name, config)
         elif model_name in config.get('api_models', {}):
             evaluator = APIModelEvaluator(model_name, config)
         else:
