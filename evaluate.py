@@ -319,17 +319,31 @@ class OllamaModelEvaluator(LLMEvaluator):
         }
         
         try:
+            # Ensure URL doesn't have double slashes
+            url = f"{self.ollama_url.rstrip('/')}/api/generate"
+            
             response = requests.post(
-                f"{self.ollama_url}/api/generate",
+                url,
                 json=payload,
+                headers={"Content-Type": "application/json"},
                 timeout=120  # 2 minute timeout for generation
             )
+            
+            # Debug output on failure
+            if response.status_code != 200:
+                print(f"Ollama API Error - Status: {response.status_code}")
+                print(f"URL: {url}")
+                print(f"Payload: {payload}")
+                print(f"Response: {response.text}")
+            
             response.raise_for_status()
             result = response.json()
             return result.get('response', '').strip()
             
         except requests.exceptions.RequestException as e:
             print(f"Error calling Ollama API: {e}")
+            print(f"URL: {url}")
+            print(f"Model: {self.ollama_model_name}")
             return ""
     
     def unload_model(self):
