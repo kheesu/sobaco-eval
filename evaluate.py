@@ -291,9 +291,9 @@ class OllamaModelEvaluator(LLMEvaluator):
             return 'llama3.1:70b-instruct'
         elif 'llama-3.1-70b' in hf_path_lower:
             return 'llama3.1:70b'
-        elif 'qwen-3-4b-inst' in hf_path_lower:
+        elif 'qwen-3-4b' in hf_path_lower:
             return 'qwen3:4b-instruct'
-        elif 'qwen-3-30b-inst' in hf_path_lower:
+        elif 'qwen-3-30b' in hf_path_lower:
             return 'qwen3:30b-instruct'
         else:
             # Fallback: use the last part of the path
