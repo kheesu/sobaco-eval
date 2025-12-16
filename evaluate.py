@@ -16,6 +16,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import warnings
 import requests
+import asyncio
+from tqdm.asyncio import tqdm as async_tqdm
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 # Load environment variables from .env file
 try:
@@ -235,6 +237,188 @@ class APIModelEvaluator(LLMEvaluator):
             print(f"Error generating response: {e}")
             return ""
 
+class AsyncAPIModelEvaluator(LLMEvaluator):
+    """Async evaluator for API-based models with concurrent requests"""
+    
+    def __init__(self, model_name: str, config: Dict, max_concurrent: int = 10):
+        super().__init__(model_name, config)
+        self.max_concurrent = max_concurrent
+        self.semaphore = None
+        
+    def load_model(self):
+        """Initialize API client"""
+        model_config = self.config['api_models'][self.model_name]
+        provider = model_config['provider']
+        
+        if provider == 'openai':
+            if not OPENAI_AVAILABLE:
+                raise ImportError("OpenAI package not installed. Install with: pip install openai")
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                raise ValueError("OPENAI_API_KEY environment variable not set")
+            from openai import AsyncOpenAI
+            self.client = AsyncOpenAI(api_key=api_key)
+            
+        elif provider == 'anthropic':
+            if not ANTHROPIC_AVAILABLE:
+                raise ImportError("Anthropic package not installed. Install with: pip install anthropic")
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+            if not api_key:
+                raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+            from anthropic import AsyncAnthropic
+            self.client = AsyncAnthropic(api_key=api_key)
+            
+        elif provider == 'google':
+            # Google AI SDK doesn't have native async support yet
+            # We'll use the sync client with asyncio.to_thread
+            if not GOOGLE_AVAILABLE:
+                raise ImportError("Google AI package not installed. Install with: pip install google-generativeai")
+            api_key = os.getenv('GOOGLE_API_KEY')
+            if not api_key:
+                raise ValueError("GOOGLE_API_KEY environment variable not set")
+            genai.configure(api_key=api_key)
+            self.client = genai
+            
+        self.semaphore = asyncio.Semaphore(self.max_concurrent)
+        print(f"Async API client initialized for {provider} (max concurrent: {self.max_concurrent})")
+    
+    async def generate_async(self, prompt: str, system_prompt: str = None) -> str:
+        """Generate response using API asynchronously"""
+        model_config = self.config['api_models'][self.model_name]
+        provider = model_config['provider']
+        
+        async with self.semaphore:
+            try:
+                if provider == 'openai':
+                    messages = [{"role": "user", "content": prompt}]
+                    
+                    response = await self.client.chat.completions.create(
+                        model=model_config['model_name'],
+                        messages=messages,
+                        temperature=model_config.get('temperature', 0.1),
+                    )
+                    return response.choices[0].message.content.strip()
+                    
+                elif provider == 'anthropic':
+                    response = await self.client.messages.create(
+                        model=model_config['model_name'],
+                        max_tokens=model_config.get('max_tokens', 100),
+                        temperature=model_config.get('temperature', 0.1),
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    return response.content[0].text.strip()
+                    
+                elif provider == 'google':
+                    # Run in thread pool since Google SDK doesn't support async
+                    model = self.client.GenerativeModel(model_config['model_name'])
+                    response = await asyncio.to_thread(
+                        model.generate_content,
+                        prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            max_output_tokens=model_config.get('max_tokens', 100),
+                            temperature=model_config.get('temperature', 0.1),
+                        )
+                    )
+                    return response.text.strip()
+                    
+            except Exception as e:
+                print(f"\nError generating response: {e}")
+                return ""
+    
+    def generate(self, prompt: str, system_prompt: str = None) -> str:
+        """Sync wrapper for backward compatibility"""
+        return asyncio.run(self.generate_async(prompt, system_prompt))
+
+
+async def evaluate_dataset_async(evaluator: AsyncAPIModelEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None) -> pd.DataFrame:
+    """
+    Evaluate model on a dataset asynchronously
+    
+    Args:
+        evaluator: AsyncAPIModelEvaluator instance
+        dataset_path: Path to CSV dataset
+        config: Configuration dictionary
+        subset_percent: If provided, only evaluate on this percentage of the dataset
+    
+    Returns:
+        DataFrame with predictions and results
+    """
+    # Load dataset
+    df = load_dataset(dataset_path)
+    
+    # Use subset if specified
+    if subset_percent is not None:
+        original_size = len(df)
+        subset_size = max(1, int(original_size * subset_percent))
+        df = df.head(subset_size).copy()
+        print(f"Using subset: {subset_size} samples ({subset_percent*100:.0f}% of {original_size})")
+    
+    # Determine target language for prompt selection
+    language = get_dataset_language(dataset_path)
+    
+    # Get all available format templates for the target language
+    template_variants = []
+    for i in range(1, 4):
+        template_key = f"format_template_{language}_{i}"
+        if template_key in config['prompts']:
+            template_variants.append(config['prompts'][template_key])
+    
+    if not template_variants:
+        raise ValueError(f"No format templates found for language '{language}' in config prompts")
+    else:
+        prompt_template = random.choice(template_variants)
+        print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
+    
+    # Prepare all prompts
+    prompts = []
+    options_list = []
+    for idx, row in df.iterrows():
+        prompt = format_prompt(row, prompt_template, language)
+        prompts.append((idx, prompt))
+        options_list.append((idx, parse_options(row['options'])))
+    
+    # Add columns for predictions
+    df['prediction'] = None
+    df['raw_response'] = None
+    
+    # Create tasks for concurrent evaluation
+    async def process_sample(idx: int, prompt: str, options: List[str]):
+        try:
+            response = await evaluator.generate_async(prompt)
+            prediction = extract_answer(response, options)
+            return idx, response, prediction
+        except Exception as e:
+            print(f"\nError at index {idx}: {e}")
+            return idx, f"ERROR: {str(e)}", None
+    
+    # Create all tasks
+    tasks = [
+        process_sample(idx, prompt, options)
+        for (idx, prompt), (_, options) in zip(prompts, options_list)
+    ]
+    
+    # Execute tasks with progress bar
+    results = []
+    for coro in async_tqdm(
+        asyncio.as_completed(tasks),
+        total=len(tasks),
+        desc=f"Evaluating {evaluator.model_name}"
+    ):
+        result = await coro
+        results.append(result)
+    
+    # Update dataframe with results
+    for idx, raw_response, prediction in results:
+        df.at[idx, 'raw_response'] = raw_response
+        df.at[idx, 'prediction'] = prediction
+    
+    # Save final results
+    if config['evaluation'].get('save_predictions', True):
+        output_dir = create_output_dir(config['output']['results_dir'])
+        temp_path = output_dir / f"temp_{evaluator.model_name}_{Path(dataset_path).stem}.csv"
+        df.to_csv(temp_path, index=False)
+    
+    return df
 
 class OllamaModelEvaluator(LLMEvaluator):
     """Evaluator for local models via Ollama API"""
@@ -445,6 +629,10 @@ def main():
                        help='Use Ollama API for local models instead of loading them directly')
     parser.add_argument('--ollama-url', type=str, default='http://localhost:11434',
                        help='Ollama server URL (default: http://localhost:11434)')
+    parser.add_argument('--async-api', action='store_true',
+                       help='Use async evaluation for API models (faster with concurrent requests)')
+    parser.add_argument('--max-concurrent', type=int, default=10,
+                       help='Maximum concurrent API requests for async mode (default: 10)')
     
     args = parser.parse_args()
     
@@ -468,6 +656,8 @@ def main():
     print(f"Models to evaluate: {args.model}")
     if args.use_ollama:
         print(f"Using Ollama API at {args.ollama_url}")
+    if args.async_api:
+        print(f"Using async API evaluation with max {args.max_concurrent} concurrent requests")
     
     # Evaluate each model on each dataset
     for model_name in args.model:
@@ -476,18 +666,26 @@ def main():
         print(f"{'='*60}")
         
         # Determine if local or API model
-        if model_name in config.get('local_models', {}):
-            if args.use_ollama:
-                # Use Ollama API for local models
-                evaluator = OllamaModelEvaluator(model_name, config, args.ollama_url)
-            else:
-                # Load model directly with Hugging Face
-                evaluator = LocalModelEvaluator(model_name, config)
-        elif model_name in config.get('api_models', {}):
-            evaluator = APIModelEvaluator(model_name, config)
-        else:
+        is_api_model = model_name in config.get('api_models', {})
+        is_local_model = model_name in config.get('local_models', {})
+        
+        if not is_api_model and not is_local_model:
             print(f"Error: Model '{model_name}' not found in config")
             continue
+        
+        # Create appropriate evaluator
+        if is_api_model and args.async_api:
+            evaluator = AsyncAPIModelEvaluator(model_name, config, args.max_concurrent)
+            use_async = True
+        elif is_api_model:
+            evaluator = APIModelEvaluator(model_name, config)
+            use_async = False
+        elif is_local_model and args.use_ollama:
+            evaluator = OllamaModelEvaluator(model_name, config, args.ollama_url)
+            use_async = False
+        else:
+            evaluator = LocalModelEvaluator(model_name, config)
+            use_async = False
         
         # Load model
         try:
@@ -501,8 +699,11 @@ def main():
             print(f"\nEvaluating on: {dataset_path.name}")
             
             try:
-                # Run evaluation
-                results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset)
+                # Run evaluation (async or sync)
+                if use_async:
+                    results_df = asyncio.run(evaluate_dataset_async(evaluator, str(dataset_path), config, args.subset))
+                else:
+                    results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset)
                 
                 # Calculate metrics
                 metrics = calculate_metrics(results_df)
