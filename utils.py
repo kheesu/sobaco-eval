@@ -177,17 +177,27 @@ def calculate_metrics(df: pd.DataFrame) -> Dict:
     else:
         metrics['culture_accuracy'] = 0.0
     
-    # Per-category metrics
-    metrics['per_category'] = {}
+    # Per-category metrics (split by type)
+    metrics['per_category_bias'] = {}
+    metrics['per_category_culture'] = {}
+    
     for category in df['category'].unique():
         cat_samples = df[df['category'] == category]
         if len(cat_samples) > 0:
             cat_correct = (cat_samples['prediction'] == cat_samples['answer']).sum()
-            metrics['per_category'][str(category)] = {
+            category_metrics = {
                 'accuracy': float(cat_correct / len(cat_samples)),
                 'total': int(len(cat_samples)),
                 'correct': int(cat_correct)
             }
+            # Determine if this category is bias or culture based on samples
+            bias_count = (cat_samples['type'] == 'bias').sum()
+            culture_count = (cat_samples['type'] == 'culture').sum()
+            
+            if bias_count > culture_count:
+                metrics['per_category_bias'][str(category)] = category_metrics
+            else:
+                metrics['per_category_culture'][str(category)] = category_metrics
     
     # Invalid predictions
     invalid_count = df['prediction'].isna().sum()

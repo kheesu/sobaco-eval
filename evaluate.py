@@ -394,9 +394,8 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
         else:
             raise ValueError(f"No format templates found for language '{language}' and no default template available")
     else:
-        # Randomly select one of the available templates
-        prompt_template = random.choice(template_variants)
-        print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
+        # Raise exception instead of randomly selecting
+        raise ValueError(f"Multiple format templates found for language '{language}' ({len(template_variants)} variants). Cannot proceed with random selection.")
     
     # No system prompt is used
     system_prompt = None

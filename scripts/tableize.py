@@ -8,6 +8,7 @@ MODEL_LIST = [
     'qwen-3-4b-inst',
     'qwen-3-30b-inst',
     'gpt-5.1',
+    'hyperclovax',
 ]
 
 LANG_PAIR_LIST = [
@@ -27,7 +28,11 @@ if __name__ == '__main__':
     buffer = ''
     with open('result_table.csv', 'w') as fp:
         for model in MODEL_LIST:
-            buffer += f"\"{model} (bias score, closer to 0 is better)\",,,,,\"{model} (cultural accuracy, higher is better)\"\n"
+            # Hack for renaming hyperclova model
+            if model == 'hyperclovax':
+                buffer += f"\"HyperCLOVAX-SEED-Text-Instruct-1.5B (bias score, closer to 0 is better)\",,,,,\"HyperCLOVAX-SEED-Text-Instruct-1.5B (cultural accuracy, higher is better)\"\n"
+            else:
+                buffer += f"\"{model} (bias score, closer to 0 is better)\",,,,,\"{model} (cultural accuracy, higher is better)\"\n"
             buffer += "Culture \\ Lang,Chinese,Japanese,Korean,,Culture \\ Lang,Chinese,Japanese,Korean\n"
 
             filtered_list = [file_name for file_name in dir_list if model in file_name]
