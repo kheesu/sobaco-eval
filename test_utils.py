@@ -12,7 +12,7 @@ def main():
     args = parser.parse_args()
     
     # Process first file
-    df1 = pd.read_csv(args.file1)
+    df1 = pd.read_csv(args.csv)
     metrics1 = utils.calculate_metrics(df1)
     
     # Print results
