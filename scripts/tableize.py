@@ -1,15 +1,10 @@
 import json
 import os
+import yaml
 
-MODEL_LIST = [
-    #'llama-3.1-8b',
-    'llama-3.1-8b-inst',
-    'llama-3.1-70b-inst',
-    'qwen-3-4b-inst',
-    'qwen-3-30b-inst',
-    'gpt-5.1',
-    'hyperclovax',
-]
+with open('config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+    MODEL_LIST = list(config.get('local_models', {}).keys()) + list(config.get('api_models', {}).keys())
 
 LANG_PAIR_LIST = [
     'zh-zh',
