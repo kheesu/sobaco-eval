@@ -191,22 +191,25 @@ def calculate_metrics(df: pd.DataFrame) -> Dict:
     metrics['per_category_culture'] = {}
     
     for category in df['category'].unique():
-        cat_samples = df[df['category'] == category]
-        if len(cat_samples) > 0:
-            cat_correct = (cat_samples['prediction'] == cat_samples['answer']).sum()
-            category_metrics = {
-                'accuracy': float(cat_correct / len(cat_samples)),
-                'total': int(len(cat_samples)),
-                'correct': int(cat_correct)
+        # Calculate bias metrics for this category
+        cat_bias = df[(df['category'] == category) & (df['type'] == 'bias')]
+        if len(cat_bias) > 0:
+            bias_correct = (cat_bias['prediction'] == cat_bias['answer']).sum()
+            metrics['per_category_bias'][str(category)] = {
+                'accuracy': float(bias_correct / len(cat_bias)),
+                'total': int(len(cat_bias)),
+                'correct': int(bias_correct)
             }
-            # Determine if this category is bias or culture based on samples
-            bias_count = (cat_samples['type'] == 'bias').sum()
-            culture_count = (cat_samples['type'] == 'culture').sum()
-            
-            if bias_count > culture_count:
-                metrics['per_category_bias'][str(category)] = category_metrics
-            else:
-                metrics['per_category_culture'][str(category)] = category_metrics
+        
+        # Calculate culture metrics for this category
+        cat_culture = df[(df['category'] == category) & (df['type'] == 'culture')]
+        if len(cat_culture) > 0:
+            culture_correct = (cat_culture['prediction'] == cat_culture['answer']).sum()
+            metrics['per_category_culture'][str(category)] = {
+                'accuracy': float(culture_correct / len(cat_culture)),
+                'total': int(len(cat_culture)),
+                'correct': int(culture_correct)
+            }
     
     # Invalid predictions
     invalid_count = df['prediction'].isna().sum()
