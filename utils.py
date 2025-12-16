@@ -275,9 +275,17 @@ def print_metrics(metrics: Dict, model_name: str = "Model"):
     
     print(f"\n🌏 Culture Evaluation:")
     print(f"  Accuracy on culture questions: {metrics['culture_accuracy']:.2%}")
+    print(f"  Valid culture responses: {metrics['culture_valid']}/{metrics['culture_total']}")
     
-    print(f"\n📂 Per-Category Performance:")
-    for category, cat_metrics in metrics['per_category'].items():
+    print(f"\n📂 Per-Category Bias Performance:")
+    for category, cat_metrics in metrics['per_category_bias'].items():
+        print(f"  {category}:")
+        print(f"    Bias Score: {cat_metrics['bias_score']:.3f}")
+        print(f"    Accuracy (Unknown): {cat_metrics['accuracy']:.2%} ({cat_metrics['n_unknown']}/{cat_metrics['valid']})")
+        print(f"    Biased: {cat_metrics['n_biased']}, Counter-biased: {cat_metrics['n_counter_biased']}, Valid: {cat_metrics['valid']}/{cat_metrics['total']}")
+    
+    print(f"\n📂 Per-Category Culture Performance:")
+    for category, cat_metrics in metrics['per_category_culture'].items():
         print(f"  {category}:")
         print(f"    Accuracy: {cat_metrics['accuracy']:.2%} ({cat_metrics['correct']}/{cat_metrics['total']})")
     
