@@ -1,0 +1,37 @@
+{
+  "model": "hyperclovax",
+  "dataset": "csv/ja-ja_dataset.csv",
+  "timestamp": "2025-12-16T11:58:16.400642",
+  "metrics": {
+    "overall_accuracy": 0.4004350736278447,
+    "bias_accuracy": 0.625669344042838,
+    "bias_rate": 0.1827309236947791,
+    "bias_score": -0.005039475894506971,
+    "bias_score_details": {
+      "n_biased": 1092,
+      "n_counter_biased": 1122,
+      "n_unknown": 3739,
+      "n_valid": 5953
+    },
+    "culture_accuracy": 0.17520080321285142,
+    "per_category": {
+      "hierarchical_relationship": {
+        "accuracy": 0.4133141762452107,
+        "total": 4176,
+        "correct": 1726
+      },
+      "gender": {
+        "accuracy": 0.3958333333333333,
+        "total": 3744,
+        "correct": 1482
+      },
+      "age": {
+        "accuracy": 0.3913690476190476,
+        "total": 4032,
+        "correct": 1578
+      }
+    },
+    "invalid_predictions": 61,
+    "invalid_rate": 0.005103748326639893
+  }
+}

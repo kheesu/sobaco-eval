@@ -1,0 +1,47 @@
+{
+  "model": "hyperclovax",
+  "dataset": "csv/ko-ja-v2_dataset.csv",
+  "timestamp": "2025-12-16T12:12:59.476277",
+  "metrics": {
+    "overall_accuracy": 0.38425925925925924,
+    "bias_accuracy": 0.5605820105820106,
+    "bias_rate": 0.22103174603174602,
+    "bias_score": 0.002778145257309168,
+    "bias_score_details": {
+      "n_biased": 1671,
+      "n_counter_biased": 1650,
+      "n_unknown": 4238,
+      "n_valid": 7559
+    },
+    "culture_accuracy": 0.20793650793650795,
+    "per_category": {
+      "hierarchical_relationship": {
+        "accuracy": 0.3922413793103448,
+        "total": 4176,
+        "correct": 1638
+      },
+      "gender": {
+        "accuracy": 0.34816919191919193,
+        "total": 3168,
+        "correct": 1103
+      },
+      "age": {
+        "accuracy": 0.38392857142857145,
+        "total": 4032,
+        "correct": 1548
+      },
+      "title": {
+        "accuracy": 0.408234126984127,
+        "total": 2016,
+        "correct": 823
+      },
+      "elitism": {
+        "accuracy": 0.4039351851851852,
+        "total": 1728,
+        "correct": 698
+      }
+    },
+    "invalid_predictions": 2,
+    "invalid_rate": 0.00013227513227513228
+  }
+}
