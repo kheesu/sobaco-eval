@@ -42,6 +42,14 @@ local_models:
     temperature: 0.0001
     top_p: 0.95
 
+  hyperclovax:
+    model_name: "naver-hyperclovax/HyperCLOVAX-SEED-Text-Instruct-1.5B"
+    load_in_8bit: false
+    device_map: "auto"
+    max_tokens: 1
+    temperature: 0.0001
+    top_p: 0.95
+
 # API-based Models
 api_models:
   gpt-4:
