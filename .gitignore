@@ -39,6 +39,7 @@ results/**/*
 *.csv
 *.json
 !csv/*.csv
+!csv/old/*.csv
 *.png
 *.jpg
 *.pdf
