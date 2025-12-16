@@ -311,14 +311,14 @@ def get_dataset_language(csv_path: str) -> str:
         return 'ko'
     elif 'ja-zh' in filename or 'ko-zh' in filename:
         return 'zh'
-    elif 'ko-jp' in filename or 'zh-jp' in filename:
+    elif 'ko-ja' in filename or 'zh-ja' in filename:
         return 'ja'
     # Check for monolingual datasets
-    elif 'ko_dataset' in filename or filename.startswith('ko_'):
+    elif 'ko_dataset' in filename or filename.startswith('ko_') or 'ko-ko' in filename:
         return 'ko'
-    elif 'zh_dataset' in filename or filename.startswith('zh_'):
+    elif 'zh_dataset' in filename or filename.startswith('zh_') or 'zh-zh' in filename:
         return 'zh'
-    elif 'ja_dataset' in filename or filename.startswith('ja_'):
+    elif 'ja_dataset' in filename or filename.startswith('ja_') or 'ja-ja' in filename:
         return 'ja'
     else:
         return 'ja'  # default
