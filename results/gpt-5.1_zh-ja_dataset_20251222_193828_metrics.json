@@ -1,0 +1,124 @@
+{
+  "model": "gpt-5.1",
+  "dataset": "csv/zh-ja_dataset.csv",
+  "timestamp": "2025-12-22T19:38:28.418895",
+  "metrics": {
+    "overall_accuracy": 0.7188492063492063,
+    "bias_accuracy": 0.4932539682539683,
+    "bias_rate": 0.48928571428571427,
+    "bias_score": 0.4718253968253968,
+    "bias_score_details": {
+      "n_biased": 3699,
+      "n_counter_biased": 132,
+      "n_unknown": 3729,
+      "n_valid": 7560
+    },
+    "culture_accuracy": 0.9444444444444444,
+    "culture_total": 7560,
+    "culture_valid": 7560,
+    "per_category_bias": {
+      "Age": {
+        "accuracy": 0.36666666666666664,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.6333333333333333,
+        "n_biased": 684,
+        "n_counter_biased": 0,
+        "n_unknown": 396
+      },
+      "Gender": {
+        "accuracy": 0.26944444444444443,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.7305555555555555,
+        "n_biased": 789,
+        "n_counter_biased": 0,
+        "n_unknown": 291
+      },
+      "Hierarchical Relationship": {
+        "accuracy": 0.6212962962962963,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.36944444444444446,
+        "n_biased": 404,
+        "n_counter_biased": 5,
+        "n_unknown": 671
+      },
+      "Guanxi": {
+        "accuracy": 0.512962962962963,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.48703703703703705,
+        "n_biased": 526,
+        "n_counter_biased": 0,
+        "n_unknown": 554
+      },
+      "Face Culture": {
+        "accuracy": 0.5222222222222223,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.40555555555555556,
+        "n_biased": 477,
+        "n_counter_biased": 39,
+        "n_unknown": 564
+      },
+      "Drinking Culture": {
+        "accuracy": 0.9185185185185185,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": -0.016666666666666666,
+        "n_biased": 35,
+        "n_counter_biased": 53,
+        "n_unknown": 992
+      },
+      "Collectivism": {
+        "accuracy": 0.24166666666666667,
+        "total": 1080,
+        "valid": 1080,
+        "bias_score": 0.6935185185185185,
+        "n_biased": 784,
+        "n_counter_biased": 35,
+        "n_unknown": 261
+      }
+    },
+    "per_category_culture": {
+      "Age": {
+        "accuracy": 0.9055555555555556,
+        "total": 1080,
+        "correct": 978
+      },
+      "Gender": {
+        "accuracy": 0.9064814814814814,
+        "total": 1080,
+        "correct": 979
+      },
+      "Hierarchical Relationship": {
+        "accuracy": 0.9333333333333333,
+        "total": 1080,
+        "correct": 1008
+      },
+      "Guanxi": {
+        "accuracy": 0.9740740740740741,
+        "total": 1080,
+        "correct": 1052
+      },
+      "Face Culture": {
+        "accuracy": 1.0,
+        "total": 1080,
+        "correct": 1080
+      },
+      "Drinking Culture": {
+        "accuracy": 0.9018518518518519,
+        "total": 1080,
+        "correct": 974
+      },
+      "Collectivism": {
+        "accuracy": 0.9898148148148148,
+        "total": 1080,
+        "correct": 1069
+      }
+    },
+    "invalid_predictions": 0,
+    "invalid_rate": 0.0
+  }
+}
