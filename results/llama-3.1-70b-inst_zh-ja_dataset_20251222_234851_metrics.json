@@ -1,0 +1,124 @@
+{
+  "model": "llama-3.1-70b-inst",
+  "dataset": "csv/zh-ja_dataset.csv",
+  "timestamp": "2025-12-22T23:48:52.052089",
+  "metrics": {
+    "overall_accuracy": 0.0,
+    "bias_accuracy": 0.0,
+    "bias_rate": 0.0,
+    "bias_score": 0.0,
+    "bias_score_details": {
+      "n_biased": 0,
+      "n_counter_biased": 0,
+      "n_unknown": 0,
+      "n_valid": 0
+    },
+    "culture_accuracy": 0.0,
+    "culture_total": 7560,
+    "culture_valid": 0,
+    "per_category_bias": {
+      "Age": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Gender": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Hierarchical Relationship": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Guanxi": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Face Culture": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Drinking Culture": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      },
+      "Collectivism": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "valid": 0,
+        "bias_score": 0.0,
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0
+      }
+    },
+    "per_category_culture": {
+      "Age": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Gender": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Hierarchical Relationship": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Guanxi": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Face Culture": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Drinking Culture": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      },
+      "Collectivism": {
+        "accuracy": 0.0,
+        "total": 1080,
+        "correct": 0
+      }
+    },
+    "invalid_predictions": 15120,
+    "invalid_rate": 1.0
+  }
+}
