@@ -1,30 +1,20 @@
-# Core dependencies
-# NOTE: Default torch from PyPI is CPU-only!
-# For CUDA support, install PyTorch first using the appropriate command:
-#   CUDA 11.8: pip install torch>=2.0.0 --index-url https://download.pytorch.org/whl/cu118
-#   CUDA 12.1: pip install torch>=2.0.0 --index-url https://download.pytorch.org/whl/cu121
-#   CPU only:  pip install torch>=2.0.0
-# Then install the rest: pip install -r requirements.txt
 torch>=2.0.0
 transformers>=4.35.0
 accelerate>=0.25.0
-bitsandbytes>=0.41.0  # Requires CUDA for quantization
-
-# Data processing
+bitsandbytes>=0.41.0
 pandas>=2.0.0
 numpy>=1.24.0
 
 # API clients for commercial models
 openai>=1.0.0
-anthropic>=0.7.0
 google-generativeai>=0.3.0
 
-# Configuration and utilities
+# For config
 pyyaml>=6.0
 tqdm>=4.65.0
 python-dotenv>=1.0.0
 
-# Analysis and visualization
+# Visualization
 matplotlib>=3.7.0
 seaborn>=0.12.0
 plotly>=5.17.0
@@ -34,7 +24,4 @@ scikit-learn>=1.3.0
 jupyter>=1.0.0
 ipywidgets>=8.0.0
 notebook>=7.0.0
-
-# Optional: For faster inference
-# sentencepiece>=0.1.99
-# tokenizers>=0.15.0
+ipykernel>=7.0.0

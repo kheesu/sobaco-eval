@@ -156,6 +156,61 @@ class LocalModelEvaluator(LLMEvaluator):
         response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         
         return response.strip()
+    
+    def generate_batch(self, prompts: List[str], system_prompt: str = None) -> List[str]:
+        """Generate responses for multiple prompts using batching"""
+        model_config = self.config['local_models'][self.model_name]
+        
+        # Check if model has chat template (Instruct models)
+        has_chat_template = hasattr(self.tokenizer, 'chat_template') and self.tokenizer.chat_template is not None
+        
+        formatted_prompts = []
+        for prompt in prompts:
+            if has_chat_template:
+                # Format messages for chat models
+                messages = [{"role": "user", "content": prompt}]
+                formatted_prompt = self.tokenizer.apply_chat_template(
+                    messages, 
+                    tokenize=False, 
+                    add_generation_prompt=True
+                )
+            else:
+                # Base model without chat template
+                formatted_prompt = prompt
+            formatted_prompts.append(formatted_prompt)
+        
+        # Tokenize batch with padding
+        inputs = self.tokenizer(
+            formatted_prompts, 
+            return_tensors="pt",
+            truncation=True,
+            max_length=2048,
+            padding=True  # Enable padding for batch processing
+        )
+        inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+        
+        # Generate
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=model_config.get('max_tokens', 100),
+                temperature=model_config.get('temperature', 0.1),
+                top_p=model_config.get('top_p', 0.95),
+                do_sample=True,
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
+            )
+        
+        # Decode each response in the batch
+        responses = []
+        for i, output in enumerate(outputs):
+            # Decode only the generated part (skip input tokens)
+            input_length = inputs['input_ids'][i].shape[0]
+            generated_ids = output[input_length:]
+            response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+            responses.append(response.strip())
+        
+        return responses
 
 
 class APIModelEvaluator(LLMEvaluator):
@@ -535,7 +590,7 @@ class OllamaModelEvaluator(LLMEvaluator):
         print(f"Finished using Ollama model: {self.ollama_model_name}")
 
 
-def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None) -> pd.DataFrame:
+def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None, batch_size: int = 1) -> pd.DataFrame:
     """
     Evaluate model on a dataset
     
@@ -544,6 +599,7 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
         dataset_path: Path to CSV dataset
         config: Configuration dictionary
         subset_percent: If provided, only evaluate on this percentage of the dataset (e.g., 0.1 for 10%)
+        batch_size: Batch size for local models (default: 1, no batching)
     
     Returns:
         DataFrame with predictions and results
@@ -588,30 +644,86 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
     save_interval = config['evaluation'].get('save_interval', 100)
     output_dir = create_output_dir(config['output']['results_dir'])
     
-    # Evaluate each sample
-    for idx, row in tqdm(df.iterrows(), total=len(df), desc=f"Evaluating {evaluator.model_name}"):
-        # Format prompt
-        prompt = format_prompt(row, prompt_template, language)
+    # Check if we can use batching (only for LocalModelEvaluator)
+    use_batching = isinstance(evaluator, LocalModelEvaluator) and batch_size > 1
+    
+    if use_batching:
+        print(f"Using batch processing with batch_size={batch_size}")
         
-        # Generate response
-        try:
-            response = evaluator.generate(prompt, system_prompt)
-            df.at[idx, 'raw_response'] = response
-            
-            # Extract answer
+        # Prepare all prompts and options
+        all_prompts = []
+        all_options = []
+        all_indices = []
+        
+        for idx, row in df.iterrows():
+            prompt = format_prompt(row, prompt_template, language)
             options = parse_options(row['options'])
-            prediction = extract_answer(response, options)
-            df.at[idx, 'prediction'] = prediction
-            
-        except Exception as e:
-            print(f"\nError at index {idx}: {e}")
-            df.at[idx, 'raw_response'] = f"ERROR: {str(e)}"
-            df.at[idx, 'prediction'] = None
+            all_prompts.append(prompt)
+            all_options.append(options)
+            all_indices.append(idx)
         
-        # Save intermediate results
-        if config['evaluation'].get('save_predictions', True) and (idx + 1) % save_interval == 0:
-            temp_path = output_dir / f"temp_{evaluator.model_name}_{Path(dataset_path).stem}.csv"
-            df.to_csv(temp_path, index=False)
+        # Process in batches
+        for i in tqdm(range(0, len(all_prompts), batch_size), desc=f"Evaluating {evaluator.model_name}"):
+            batch_prompts = all_prompts[i:i+batch_size]
+            batch_options = all_options[i:i+batch_size]
+            batch_indices = all_indices[i:i+batch_size]
+            
+            try:
+                # Generate batch responses
+                responses = evaluator.generate_batch(batch_prompts, system_prompt)
+                
+                # Process each response in batch
+                for idx, response, options in zip(batch_indices, responses, batch_options):
+                    df.at[idx, 'raw_response'] = response
+                    prediction = extract_answer(response, options)
+                    df.at[idx, 'prediction'] = prediction
+                    
+            except Exception as e:
+                print(f"\nError in batch starting at index {batch_indices[0]}: {e}")
+                # Fall back to individual processing for this batch
+                for idx, prompt, options in zip(batch_indices, batch_prompts, batch_options):
+                    try:
+                        response = evaluator.generate(prompt, system_prompt)
+                        df.at[idx, 'raw_response'] = response
+                        prediction = extract_answer(response, options)
+                        df.at[idx, 'prediction'] = prediction
+                    except Exception as e2:
+                        print(f"\nError at index {idx}: {e2}")
+                        df.at[idx, 'raw_response'] = f"ERROR: {str(e2)}"
+                        df.at[idx, 'prediction'] = None
+            
+            # Save intermediate results
+            if config['evaluation'].get('save_predictions', True) and (i + batch_size) % save_interval < batch_size:
+                temp_path = output_dir / f"temp_{evaluator.model_name}_{Path(dataset_path).stem}.csv"
+                df.to_csv(temp_path, index=False)
+    else:
+        # Original sequential processing (for API models or batch_size=1)
+        if batch_size > 1:
+            print(f"Batching not supported for {type(evaluator).__name__}, using sequential processing")
+        
+        for idx, row in tqdm(df.iterrows(), total=len(df), desc=f"Evaluating {evaluator.model_name}"):
+            # Format prompt
+            prompt = format_prompt(row, prompt_template, language)
+            
+            # Generate response
+            try:
+                response = evaluator.generate(prompt, system_prompt)
+                df.at[idx, 'raw_response'] = response
+                
+                # Extract answer
+                options = parse_options(row['options'])
+                prediction = extract_answer(response, options)
+                df.at[idx, 'prediction'] = prediction
+                
+            except Exception as e:
+                print(f"\nError at index {idx}: {e}")
+                df.at[idx, 'raw_response'] = f"ERROR: {str(e)}"
+                df.at[idx, 'prediction'] = None
+            
+            # Save intermediate results
+            if config['evaluation'].get('save_predictions', True) and (idx + 1) % save_interval == 0:
+                temp_path = output_dir / f"temp_{evaluator.model_name}_{Path(dataset_path).stem}.csv"
+                df.to_csv(temp_path, index=False)
     
     return df
 
@@ -633,6 +745,8 @@ def main():
                        help='Use async evaluation for API models (faster with concurrent requests)')
     parser.add_argument('--max-concurrent', type=int, default=10,
                        help='Maximum concurrent API requests for async mode (default: 10)')
+    parser.add_argument('--batch-size', type=int, default=1,
+                       help='Batch size for local model evaluation (default: 1, no batching). Higher values improve GPU utilization.')
     
     args = parser.parse_args()
     
@@ -703,7 +817,7 @@ def main():
                 if use_async:
                     results_df = asyncio.run(evaluate_dataset_async(evaluator, str(dataset_path), config, args.subset))
                 else:
-                    results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset)
+                    results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset, args.batch_size)
                 
                 # Calculate metrics
                 metrics = calculate_metrics(results_df)
