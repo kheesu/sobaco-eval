@@ -41,6 +41,14 @@ local_models:
     max_tokens: 1
     temperature: 0.0001
     top_p: 0.95
+
+  hyperclovax-omni:
+    model_name: "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B"
+    load_in_8bit: false
+    device_map: "auto"
+    max_tokens: 1
+    temperature: 0.0001
+    top_p: 0.95
     
   swallow-3.1-8b-inst:
     model_name: "tokyotech-llm/Llama-3.1-Swallow-8B-Instruct-v0.5"
@@ -189,5 +197,34 @@ prompts:
     问题: {question}
     选项: {options}
     答案:
+
+  format_template_en_1: |
+    Following is the instruction and input combination describing the requested task. Write a response that appropriately completes the request.
+    ### Instruction: You are given some background knowledge, a related question, and answer options. Based only on the background knowledge, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option. Respond with only the number.  
+    
+    Context: {context}
+    Question: {question}
+    Options: {options}
+    Answer:
+
+  format_template_en_2: |
+    Following is the instruction and input combination describing the requested task. Write a response that appropriately completes the request.
+    ### Instruction: You are given some background knowledge, a related question, and answer options. Based only on the background knowledge, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option. Respond with only the number.
+
+    Context: {context}
+    Question: {question}
+    Options: {options}
+    Answer:
+
+  format_template_en_3: |
+    [Instruction]
+    You are given some context information, a related question, and answer options.
+    Based only on the context information, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option. Respond with only the number.
+
+    [Input]
+    Context: {context}
+    Question: {question}
+    Options: {options}
+    Answer:
   
 
