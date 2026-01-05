@@ -95,6 +95,8 @@ class LocalModelEvaluator(LLMEvaluator):
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
         
+        self.tokenizer.padding_side = 'left'
+        
         load_kwargs = {
             'pretrained_model_name_or_path': model_path,
             'device_map': model_config.get('device_map', 'auto'),
