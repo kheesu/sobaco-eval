@@ -22,15 +22,11 @@ LOCAL_MODELS=(
 )
 
 API_MODELS=(
-    "gpt-5.1"
 )
 
 # Define all datasets
 DATASETS=(
-    "csv/ja-en_dataset.csv"    
-    "csv/zh-en_dataset.csv"    
     "csv/ko-en-v2_dataset.csv"
-    "csv/zh-ko_dataset.csv"
 )
 
 # Configuration
