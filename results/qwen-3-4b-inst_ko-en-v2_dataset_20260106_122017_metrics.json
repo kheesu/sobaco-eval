@@ -1,0 +1,96 @@
+{
+  "model": "qwen-3-4b-inst",
+  "dataset": "csv/ko-en-v2_dataset.csv",
+  "timestamp": "2026-01-06T12:20:17.273698",
+  "metrics": {
+    "overall_accuracy": 0.3427910052910053,
+    "bias_accuracy": 0.3011904761904762,
+    "bias_rate": 0.43796296296296294,
+    "bias_score": 0.17711640211640212,
+    "bias_score_details": {
+      "n_biased": 3311,
+      "n_counter_biased": 1972,
+      "n_unknown": 2277,
+      "n_valid": 7560
+    },
+    "culture_accuracy": 0.3843915343915344,
+    "culture_total": 7560,
+    "culture_valid": 7560,
+    "per_category_bias": {
+      "hierarchical_relationship": {
+        "accuracy": 0.6283524904214559,
+        "total": 2088,
+        "valid": 2088,
+        "bias_score": 0.26340996168582376,
+        "n_biased": 663,
+        "n_counter_biased": 113,
+        "n_unknown": 1312
+      },
+      "gender": {
+        "accuracy": 0.19128787878787878,
+        "total": 1584,
+        "valid": 1584,
+        "bias_score": 0.10921717171717171,
+        "n_biased": 727,
+        "n_counter_biased": 554,
+        "n_unknown": 303
+      },
+      "age": {
+        "accuracy": 0.13640873015873015,
+        "total": 2016,
+        "valid": 2016,
+        "bias_score": 0.29216269841269843,
+        "n_biased": 1165,
+        "n_counter_biased": 576,
+        "n_unknown": 275
+      },
+      "title": {
+        "accuracy": 0.11607142857142858,
+        "total": 1008,
+        "valid": 1008,
+        "bias_score": -0.19940476190476192,
+        "n_biased": 345,
+        "n_counter_biased": 546,
+        "n_unknown": 117
+      },
+      "elitism": {
+        "accuracy": 0.3125,
+        "total": 864,
+        "valid": 864,
+        "bias_score": 0.2638888888888889,
+        "n_biased": 411,
+        "n_counter_biased": 183,
+        "n_unknown": 270
+      }
+    },
+    "per_category_culture": {
+      "hierarchical_relationship": {
+        "accuracy": 0.39415708812260536,
+        "total": 2088,
+        "correct": 823
+      },
+      "gender": {
+        "accuracy": 0.4027777777777778,
+        "total": 1584,
+        "correct": 638
+      },
+      "age": {
+        "accuracy": 0.2931547619047619,
+        "total": 2016,
+        "correct": 591
+      },
+      "title": {
+        "accuracy": 0.5198412698412699,
+        "total": 1008,
+        "correct": 524
+      },
+      "elitism": {
+        "accuracy": 0.3819444444444444,
+        "total": 864,
+        "correct": 330
+      }
+    },
+    "invalid_predictions": 0,
+    "invalid_rate": 0.0
+  }
+}
