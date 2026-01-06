@@ -10,12 +10,15 @@ LANG_PAIR_LIST = [
     'zh-zh',
     'zh-ja',
     'zh-ko',
+    'zh-en',
     'ja-zh',
     'ja-ja',
     'ja-ko',
+    'ja-en',
     'ko-zh-v2',
     'ko-ja-v2',
     'ko-ko-v2',
+    'ko-en-v2',
 ]
 
 def tableize(out_name = 'result_table.csv'):
@@ -67,12 +70,15 @@ def single_table(out_name = 'single_result_table.csv'):
             buffer += f"{model},Chinese,Chinese,{filename_dict['zh-zh'][0]},{filename_dict['zh-zh'][1]}\n"
             buffer += f"{model},Chinese,Japanese,{filename_dict['zh-ja'][0]},{filename_dict['zh-ja'][1]}\n"
             buffer += f"{model},Chinese,Korean,{filename_dict['zh-ko'][0]},{filename_dict['zh-ko'][1]}\n"
+            buffer += f"{model},Chinese,English,{filename_dict['zh-en'][0]},{filename_dict['zh-en'][1]}\n"
             buffer += f"{model},Japanese,Chinese,{filename_dict['ja-zh'][0]},{filename_dict['ja-zh'][1]}\n"
             buffer += f"{model},Japanese,Japanese,{filename_dict['ja-ja'][0]},{filename_dict['ja-ja'][1]}\n"
             buffer += f"{model},Japanese,Korean,{filename_dict['ja-ko'][0]},{filename_dict['ja-ko'][1]}\n"
+            buffer += f"{model},Japanese,English,{filename_dict['ja-en'][0]},{filename_dict['ja-en'][1]}\n"
             buffer += f"{model},Korean,Chinese,{filename_dict['ko-zh-v2'][0]},{filename_dict['ko-zh-v2'][1]}\n"
             buffer += f"{model},Korean,Japanese,{filename_dict['ko-ja-v2'][0]},{filename_dict['ko-ja-v2'][1]}\n"
             buffer += f"{model},Korean,Korean,{filename_dict['ko-ko-v2'][0]},{filename_dict['ko-ko-v2'][1]}\n"
+            buffer += f"{model},Korean,English,{filename_dict['ko-en-v2'][0]},{filename_dict['ko-en-v2'][1]}\n"
         fp.write(buffer)
 
 if __name__ == '__main__':

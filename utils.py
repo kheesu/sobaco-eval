@@ -177,14 +177,33 @@ def calculate_metrics(df: pd.DataFrame) -> Dict:
     if len(culture_samples) > 0:
         # Only consider valid predictions for culture accuracy
         valid_culture = culture_samples[culture_samples['prediction'].notna()]
-        culture_correct = (valid_culture['prediction'] == valid_culture['answer']).sum()
-        metrics['culture_accuracy'] = float(culture_correct / len(valid_culture) if len(valid_culture) > 0 else 0)
+        
+        # n_correct: prediction matches answer
+        n_correct = (valid_culture['prediction'] == valid_culture['answer']).sum()
+        
+        # n_incorrect: prediction matches one of the other names (name1 or name2)
+        # The incorrect name is the one that is NOT the answer
+        matches_name1 = valid_culture['prediction'] == valid_culture['name1']
+        matches_name2 = valid_culture['prediction'] == valid_culture['name2']
+        is_correct_match = valid_culture['prediction'] == valid_culture['answer']
+        n_incorrect = ((matches_name1 | matches_name2) & ~is_correct_match).sum()
+        
+        # n_unknown: prediction doesn't match answer, name1, or name2
+        n_unknown = (~is_correct_match & ~matches_name1 & ~matches_name2).sum()
+        
+        metrics['culture_accuracy'] = float(n_correct / len(valid_culture) if len(valid_culture) > 0 else 0)
         metrics['culture_total'] = int(len(culture_samples))
         metrics['culture_valid'] = int(len(valid_culture))
+        metrics['culture_correct'] = int(n_correct)
+        metrics['culture_incorrect'] = int(n_incorrect)
+        metrics['culture_unknown'] = int(n_unknown)
     else:
         metrics['culture_accuracy'] = 0.0
         metrics['culture_total'] = 0
         metrics['culture_valid'] = 0
+        metrics['culture_correct'] = 0
+        metrics['culture_incorrect'] = 0
+        metrics['culture_unknown'] = 0
     
     # Per-category metrics (split by type)
     metrics['per_category_bias'] = {}
