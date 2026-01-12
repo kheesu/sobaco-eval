@@ -387,7 +387,7 @@ class AsyncAPIModelEvaluator(LLMEvaluator):
         return asyncio.run(self.generate_async(prompt, system_prompt))
 
 
-async def evaluate_dataset_async(evaluator: AsyncAPIModelEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None) -> pd.DataFrame:
+async def evaluate_dataset_async(evaluator: AsyncAPIModelEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None, template_index: Optional[int] = None) -> pd.DataFrame:
     """
     Evaluate model on a dataset asynchronously
     
@@ -396,6 +396,7 @@ async def evaluate_dataset_async(evaluator: AsyncAPIModelEvaluator, dataset_path
         dataset_path: Path to CSV dataset
         config: Configuration dictionary
         subset_percent: If provided, only evaluate on this percentage of the dataset
+        template_index: If provided, use this specific template (1, 2, or 3). If None, randomly select.
     
     Returns:
         DataFrame with predictions and results
@@ -423,8 +424,15 @@ async def evaluate_dataset_async(evaluator: AsyncAPIModelEvaluator, dataset_path
     if not template_variants:
         raise ValueError(f"No format templates found for language '{language}' in config prompts")
     else:
-        prompt_template = random.choice(template_variants)
-        print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
+        # Select template based on template_index or randomly
+        if template_index is not None:
+            if template_index < 1 or template_index > len(template_variants):
+                raise ValueError(f"Template index {template_index} out of range (1-{len(template_variants)})")
+            prompt_template = template_variants[template_index - 1]
+            print(f"Using {language} format template {template_index}")
+        else:
+            prompt_template = random.choice(template_variants)
+            print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
     
     # Prepare all prompts
     prompts = []
@@ -592,7 +600,7 @@ class OllamaModelEvaluator(LLMEvaluator):
         print(f"Finished using Ollama model: {self.ollama_model_name}")
 
 
-def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None, batch_size: int = 1) -> pd.DataFrame:
+def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, subset_percent: Optional[float] = None, batch_size: int = 1, template_index: Optional[int] = None) -> pd.DataFrame:
     """
     Evaluate model on a dataset
     
@@ -602,6 +610,7 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
         config: Configuration dictionary
         subset_percent: If provided, only evaluate on this percentage of the dataset (e.g., 0.1 for 10%)
         batch_size: Batch size for local models (default: 1, no batching)
+        template_index: If provided, use this specific template (1, 2, or 3). If None, randomly select.
     
     Returns:
         DataFrame with predictions and results
@@ -631,9 +640,16 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
     if not template_variants:
         raise ValueError(f"No format templates found for language '{language}' in config prompts")
     else:
-        # Randomly select one of the available templates
-        prompt_template = random.choice(template_variants)
-        print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
+        # Select template based on template_index or randomly
+        if template_index is not None:
+            if template_index < 1 or template_index > len(template_variants):
+                raise ValueError(f"Template index {template_index} out of range (1-{len(template_variants)})")
+            prompt_template = template_variants[template_index - 1]
+            print(f"Using {language} format template {template_index}")
+        else:
+            # Randomly select one of the available templates
+            prompt_template = random.choice(template_variants)
+            print(f"Using {language} format template (randomly selected from {len(template_variants)} variant(s))")
     
     # No system prompt is used
     system_prompt = None
@@ -730,6 +746,95 @@ def evaluate_dataset(evaluator: LLMEvaluator, dataset_path: str, config: Dict, s
     return df
 
 
+def evaluate_on_all_templates(evaluator: LLMEvaluator, dataset_path: str, config: Dict, 
+                             subset_percent: Optional[float] = None, batch_size: int = 1,
+                             use_async: bool = False) -> Dict:
+    """
+    Evaluate model on all three templates and return both individual and averaged results
+    
+    Args:
+        evaluator: LLMEvaluator instance
+        dataset_path: Path to CSV dataset
+        config: Configuration dictionary
+        subset_percent: If provided, only evaluate on this percentage of the dataset
+        batch_size: Batch size for local models
+        use_async: Whether to use async evaluation
+    
+    Returns:
+        Dictionary containing results for each template and averaged results
+    """
+    # Determine how many templates are available
+    language = get_dataset_language(dataset_path)
+    num_templates = 0
+    for i in range(1, 4):
+        template_key = f"format_template_{language}_{i}"
+        if template_key in config['prompts']:
+            num_templates += 1
+    
+    if num_templates == 0:
+        raise ValueError(f"No format templates found for language '{language}'")
+    
+    print(f"\n{'='*60}")
+    print(f"Evaluating on all {num_templates} templates for {dataset_path}")
+    print(f"{'='*60}\n")
+    
+    template_results = {}
+    template_metrics = {}
+    
+    # Evaluate on each template
+    for template_idx in range(1, num_templates + 1):
+        print(f"\n--- Template {template_idx}/{num_templates} ---")
+        
+        try:
+            # Run evaluation with specific template
+            if use_async:
+                results_df = asyncio.run(evaluate_dataset_async(
+                    evaluator, str(dataset_path), config, subset_percent, template_index=template_idx
+                ))
+            else:
+                results_df = evaluate_dataset(
+                    evaluator, str(dataset_path), config, subset_percent, batch_size, template_index=template_idx
+                )
+            
+            # Calculate metrics
+            metrics = calculate_metrics(results_df)
+            
+            # Store results
+            template_results[f"template_{template_idx}"] = results_df
+            template_metrics[f"template_{template_idx}"] = metrics
+            
+            # Print individual template results
+            print_metrics(metrics, f"{evaluator.model_name} on {Path(dataset_path).stem} (Template {template_idx})")
+            
+        except Exception as e:
+            print(f"Error evaluating template {template_idx}: {e}")
+            import traceback
+            traceback.print_exc()
+            continue
+    
+    # Calculate averaged metrics
+    if template_metrics:
+        print(f"\n{'='*60}")
+        print("AVERAGED RESULTS ACROSS ALL TEMPLATES")
+        print(f"{'='*60}")
+        
+        averaged_metrics = {}
+        metric_keys = list(template_metrics[list(template_metrics.keys())[0]].keys())
+        
+        for metric_key in metric_keys:
+            values = [template_metrics[t][metric_key] for t in template_metrics.keys()]
+            averaged_metrics[metric_key] = sum(values) / len(values)
+        
+        print_metrics(averaged_metrics, f"{evaluator.model_name} on {Path(dataset_path).stem} (AVERAGED)")
+        
+        template_metrics['averaged'] = averaged_metrics
+    
+    return {
+        'results': template_results,
+        'metrics': template_metrics
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate LLMs on SOBACO datasets")
     parser.add_argument('--model', nargs='+', required=True, help='Model name(s) to evaluate')
@@ -749,6 +854,8 @@ def main():
                        help='Maximum concurrent API requests for async mode (default: 10)')
     parser.add_argument('--batch-size', type=int, default=1,
                        help='Batch size for local model evaluation (default: 1, no batching). Higher values improve GPU utilization.')
+    parser.add_argument('--all-templates', action='store_true',
+                       help='Evaluate on all three templates and report results both separately and averaged')
     
     args = parser.parse_args()
     
@@ -815,40 +922,83 @@ def main():
             print(f"\nEvaluating on: {dataset_path.name}")
             
             try:
-                # Run evaluation (async or sync)
-                if use_async:
-                    results_df = asyncio.run(evaluate_dataset_async(evaluator, str(dataset_path), config, args.subset))
-                else:
-                    results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset, args.batch_size)
-                
-                # Calculate metrics
-                metrics = calculate_metrics(results_df)
-                
-                # Print results
-                print_metrics(metrics, f"{model_name} on {dataset_path.stem}")
-                
-                # Save results
-                output_dir = create_output_dir(config['output']['results_dir'])
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if config['output'].get('create_timestamp', True) else ""
-                base_name = f"{model_name}_{dataset_path.stem}"
-                if timestamp:
-                    base_name = f"{base_name}_{timestamp}"
-                
-                # Save CSV
-                csv_path = output_dir / f"{base_name}.csv"
-                results_df.to_csv(csv_path, index=False)
-                print(f"Results saved to: {csv_path}")
-                
-                # Save metrics JSON
-                json_path = output_dir / f"{base_name}_metrics.json"
-                with open(json_path, 'w', encoding='utf-8') as f:
-                    json.dump({
+                # Check if using all-templates mode
+                if args.all_templates:
+                    # Evaluate on all templates
+                    all_template_results = evaluate_on_all_templates(
+                        evaluator, str(dataset_path), config, args.subset, args.batch_size, use_async
+                    )
+                    
+                    # Save results
+                    output_dir = create_output_dir(config['output']['results_dir'])
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if config['output'].get('create_timestamp', True) else ""
+                    base_name = f"{model_name}_{dataset_path.stem}_all_templates"
+                    if timestamp:
+                        base_name = f"{base_name}_{timestamp}"
+                    
+                    # Save CSV for each individual template (not averaged)
+                    for result_type, results_df in all_template_results['results'].items():
+                        csv_path = output_dir / f"{model_name}_{dataset_path.stem}_{result_type}"
+                        if timestamp:
+                            csv_path = output_dir / f"{model_name}_{dataset_path.stem}_{result_type}_{timestamp}.csv"
+                        else:
+                            csv_path = output_dir / f"{model_name}_{dataset_path.stem}_{result_type}.csv"
+                        results_df.to_csv(csv_path, index=False)
+                        print(f"Results saved to: {csv_path}")
+                    
+                    # Save single comprehensive metrics JSON with all templates and averaged results
+                    json_path = output_dir / f"{base_name}_metrics.json"
+                    comprehensive_results = {
                         'model': model_name,
                         'dataset': str(dataset_path),
                         'timestamp': datetime.now().isoformat(),
-                        'metrics': metrics
-                    }, f, indent=2, ensure_ascii=False)
-                print(f"Metrics saved to: {json_path}")
+                        'evaluation_type': 'all_templates',
+                        'results': {}
+                    }
+                    
+                    # Add each template's metrics
+                    for result_type, metrics in all_template_results['metrics'].items():
+                        comprehensive_results['results'][result_type] = metrics
+                    
+                    with open(json_path, 'w', encoding='utf-8') as f:
+                        json.dump(comprehensive_results, f, indent=2, ensure_ascii=False)
+                    print(f"\nComprehensive metrics (all templates + averaged) saved to: {json_path}")
+                else:
+                    # Original single template evaluation
+                    # Run evaluation (async or sync)
+                    if use_async:
+                        results_df = asyncio.run(evaluate_dataset_async(evaluator, str(dataset_path), config, args.subset, template_index=None))
+                    else:
+                        results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset, args.batch_size, template_index=None)
+                    
+                    # Calculate metrics
+                    metrics = calculate_metrics(results_df)
+                    
+                    # Print results
+                    print_metrics(metrics, f"{model_name} on {dataset_path.stem}")
+                    
+                    # Save results
+                    output_dir = create_output_dir(config['output']['results_dir'])
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if config['output'].get('create_timestamp', True) else ""
+                    base_name = f"{model_name}_{dataset_path.stem}"
+                    if timestamp:
+                        base_name = f"{base_name}_{timestamp}"
+                    
+                    # Save CSV
+                    csv_path = output_dir / f"{base_name}.csv"
+                    results_df.to_csv(csv_path, index=False)
+                    print(f"Results saved to: {csv_path}")
+                    
+                    # Save metrics JSON
+                    json_path = output_dir / f"{base_name}_metrics.json"
+                    with open(json_path, 'w', encoding='utf-8') as f:
+                        json.dump({
+                            'model': model_name,
+                            'dataset': str(dataset_path),
+                            'timestamp': datetime.now().isoformat(),
+                            'metrics': metrics
+                        }, f, indent=2, ensure_ascii=False)
+                    print(f"Metrics saved to: {json_path}")
                 
             except Exception as e:
                 print(f"Error evaluating {dataset_path.name}: {e}")

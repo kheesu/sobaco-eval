@@ -40,7 +40,13 @@ def tableize(out_name = 'result_table.csv'):
                 if len(further_filtered_list) > 0:
                     with open(os.path.join('results', further_filtered_list[0]), 'r') as json_fp:
                         json_file = json.load(json_fp)
-                    filename_dict[lang_pair] = json_file['metrics']['bias_score'], json_file['metrics']['culture_accuracy']
+                    # Check if this is the new all_templates format
+                    if 'evaluation_type' in json_file and json_file['evaluation_type'] == 'all_templates':
+                        # Use averaged results from all templates
+                        filename_dict[lang_pair] = json_file['results']['averaged']['bias_score'], json_file['results']['averaged']['culture_accuracy']
+                    else:
+                        # Old format
+                        filename_dict[lang_pair] = json_file['metrics']['bias_score'], json_file['metrics']['culture_accuracy']
                 else:
                     filename_dict[lang_pair] = None, None
             
@@ -63,7 +69,13 @@ def single_table(out_name = 'single_result_table.csv'):
                 if len(further_filtered_list) > 0:
                     with open(os.path.join('results', further_filtered_list[0]), 'r') as json_fp:
                         json_file = json.load(json_fp)
-                    filename_dict[lang_pair] = json_file['metrics']['bias_score'], json_file['metrics']['culture_accuracy']
+                    # Check if this is the new all_templates format
+                    if 'evaluation_type' in json_file and json_file['evaluation_type'] == 'all_templates':
+                        # Use averaged results from all templates
+                        filename_dict[lang_pair] = json_file['results']['averaged']['bias_score'], json_file['results']['averaged']['culture_accuracy']
+                    else:
+                        # Old format
+                        filename_dict[lang_pair] = json_file['metrics']['bias_score'], json_file['metrics']['culture_accuracy']
                 else:
                     filename_dict[lang_pair] = None, None
             

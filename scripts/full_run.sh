@@ -83,8 +83,8 @@ run_evaluation() {
     
     echo "Running: $CMD"
     
-    # Run evaluation
-    if eval $CMD; then
+    # Run evaluation with all-templates flag
+    if eval $CMD --all-templates; then
         echo -e "${GREEN}✓ Success: $model${NC}"
     else
         echo -e "${RED}✗ Failed: $model${NC}"
