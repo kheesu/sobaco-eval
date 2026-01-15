@@ -10,13 +10,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo "=========================================="
-echo "SOBACO-EVAL: Full Evaluation Run"
+echo "SOBACO-EVAL: API Evaluation Run"
 echo "=========================================="
 
 # Define all models
 LOCAL_MODELS=(
-    "llama-3.1-70b-inst"
-    "swallow-3.1-70b-inst"
 )
 
 API_MODELS=(
@@ -25,10 +23,10 @@ API_MODELS=(
 
 # Define all datasets
 DATASETS=(
+    "csv/ja-ja_dataset.csv"
+    "csv/ja-zh_dataset.csv"
+    "csv/ja-ko_dataset.csv"
     "csv/ja-en_dataset.csv"
-    "csv/zh-en_dataset.csv"
-    "csv/ko-en-v2_dataset.csv"
-    "csv/zh-ko_dataset.csv"
 )
 
 # Configuration
