@@ -41,7 +41,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        CUDA_VERSION: "12.1.0"
+        CUDA_VERSION: "12.8.0"
         INSTALL_CUDA: "false"
     image: sobaco-eval:cpu
     container_name: sobaco-eval-cpu
@@ -63,7 +63,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        CUDA_VERSION: "12.1.0"
+        CUDA_VERSION: "12.8.0"
         INSTALL_CUDA: "false"
     image: sobaco-eval:jupyter
     container_name: sobaco-eval-jupyter

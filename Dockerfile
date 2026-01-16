@@ -23,9 +23,9 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip packaging wheel setuptoo
 COPY requirements.txt ./
 
 
-RUN export VLLM_VERSION=$(curl -s https://api.github.com/repos/vllm-project/vllm/releases/latest | jq -r .tag_name | sed 's/^v//') && \
-    pip install "https://github.com/vllm-project/vllm/releases/download/v${VLLM_VERSION}/vllm-${VLLM_VERSION}+cu128-cp38-abi3-manylinux_2_31_x86_64.whl" \
-    --extra-index-url https://download.pytorch.org/whl/cu128
+RUN pip install --no-cache-dir \
+    --extra-index-url https://wheels.vllm.ai/nightly \
+    vllm
 
 RUN pip install --no-cache-dir -r requirements.txt
 
