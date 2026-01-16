@@ -10,6 +10,7 @@ import random
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import torch
@@ -854,10 +855,23 @@ def main():
                        help='Maximum concurrent API requests for async mode (default: 10)')
     parser.add_argument('--batch-size', type=int, default=1,
                        help='Batch size for local model evaluation (default: 1, no batching). Higher values improve GPU utilization.')
-    parser.add_argument('--all-templates', action='store_true',
+    parser.add_argument('--all-templates', action='store_true', default=True,
                        help='Evaluate on all three templates and report results both separately and averaged')
+    parser.add_argument('--seed', type=int, default=42,
+                       help='Random seed for reproducibility (default: 42)')
     
     args = parser.parse_args()
+    
+    # Set seeds for full reproducibility
+    print(f"Setting random seed to {args.seed} for reproducibility")
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+        # Enable deterministic behavior for CUDA operations
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     
     # Load configuration
     config = load_config(args.config)

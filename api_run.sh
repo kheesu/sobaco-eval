@@ -18,20 +18,25 @@ LOCAL_MODELS=(
 )
 
 API_MODELS=(
-    "gpt-5.1"
+  "gpt-5.1"
 )
 
 # Define all datasets
 DATASETS=(
-    "csv/ja-ja_dataset.csv"
-    "csv/ja-zh_dataset.csv"
-    "csv/ja-ko_dataset.csv"
-    "csv/ja-en_dataset.csv"
+  "csv/ja-ja_dataset.csv"
+  "csv/ja-ko_dataset.csv"
+  "csv/ja-zh_dataset.csv"
+  "csv/ko-ja-v2_dataset.csv"
+  "csv/ko-ko-v2_dataset.csv"
+  "csv/ko-zh-v2_dataset.csv"
+  "csv/zh-ja_dataset.csv"
+  "csv/zh-ko_dataset.csv"
+  "csv/zh-v2_dataset.csv"
 )
 
 # Configuration
-BATCH_SIZE=16  # Adjust based on your GPU memory
-USE_ASYNC_API=true  # Use async for API models
+BATCH_SIZE=16      # Adjust based on your GPU memory
+USE_ASYNC_API=true # Use async for API models
 MAX_CONCURRENT=10  # Max concurrent API requests
 
 # Total count
@@ -49,36 +54,36 @@ CURRENT_RUN=0
 
 # Function to run evaluation
 run_evaluation() {
-    local model=$1
-    local is_api=$2
-    local dataset=$3
-    
-    CURRENT_RUN=$((CURRENT_RUN + 1))
-    
-    echo ""
-    echo -e "${GREEN}[${CURRENT_RUN}/${TOTAL_RUNS}] Evaluating: $model${NC} on $dataset"
-    echo "=========================================="
-    
-    # Build command
-    CMD="python evaluate.py --model $model --dataset $dataset"
-    
-    if [ "$is_api" = true ]; then
-        if [ "$USE_ASYNC_API" = true ]; then
-            CMD="$CMD --async-api --max-concurrent $MAX_CONCURRENT"
-        fi
-    else
-        CMD="$CMD --batch-size $BATCH_SIZE"
+  local model=$1
+  local is_api=$2
+  local dataset=$3
+
+  CURRENT_RUN=$((CURRENT_RUN + 1))
+
+  echo ""
+  echo -e "${GREEN}[${CURRENT_RUN}/${TOTAL_RUNS}] Evaluating: $model${NC} on $dataset"
+  echo "=========================================="
+
+  # Build command
+  CMD="python evaluate.py --model $model --dataset $dataset"
+
+  if [ "$is_api" = true ]; then
+    if [ "$USE_ASYNC_API" = true ]; then
+      CMD="$CMD --async-api --max-concurrent $MAX_CONCURRENT"
     fi
-    
-    echo "Running: $CMD"
-    
-    # Run evaluation
-    if eval $CMD; then
-        echo -e "${GREEN}✓ Success: $model${NC}"
-    else
-        echo -e "${RED}✗ Failed: $model${NC}"
-        echo "Continuing with next model..."
-    fi
+  else
+    CMD="$CMD --batch-size $BATCH_SIZE"
+  fi
+
+  echo "Running: $CMD"
+
+  # Run evaluation
+  if eval $CMD; then
+    echo -e "${GREEN}✓ Success: $model${NC}"
+  else
+    echo -e "${RED}✗ Failed: $model${NC}"
+    echo "Continuing with next model..."
+  fi
 }
 
 # Start time
@@ -91,9 +96,9 @@ echo "Starting API Model Evaluations"
 echo "=========================================="
 
 for model in "${API_MODELS[@]}"; do
-    for dataset in "${DATASETS[@]}"; do
-        run_evaluation "$model" true "$dataset"
-    done
+  for dataset in "${DATASETS[@]}"; do
+    run_evaluation "$model" true "$dataset"
+  done
 done
 
 # End time
