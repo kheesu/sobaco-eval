@@ -63,7 +63,7 @@ run_evaluation() {
     echo "=========================================="
     
     # Build command
-    CMD="python evaluate.py --model $model --dataset $dataset"
+    CMD="python3 evaluate.py --model $model --dataset $dataset"
     
     if [ "$is_api" = true ]; then
         if [ "$USE_ASYNC_API" = true ]; then

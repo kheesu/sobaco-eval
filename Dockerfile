@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for SOBACO-EVAL
 # Supports both CPU and GPU (CUDA) execution
 
-ARG CUDA_VERSION=12.1.0
+ARG CUDA_VERSION=12.8.0
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04 AS base
 
 # Set environment variables
@@ -28,7 +28,7 @@ COPY requirements.txt ./
 # For CUDA support, use requirements-cuda.txt
 ARG INSTALL_CUDA=true
 RUN if [ "$INSTALL_CUDA" = "true" ]; then \
-        pip install --no-cache-dir torch>=2.0.0 --index-url https://download.pytorch.org/whl/cu121 && \
+        pip install --no-cache-dir torch>=2.0.0 --index-url https://download.pytorch.org/whl/cu128 && \
         pip install --no-cache-dir -r requirements.txt; \
     else \
         pip install --no-cache-dir -r requirements.txt; \

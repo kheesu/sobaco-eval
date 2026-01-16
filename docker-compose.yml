@@ -10,6 +10,8 @@ services:
         CUDA_VERSION: "12.1.0"
         INSTALL_CUDA: "true"
     image: sobaco-eval:gpu
+    env_file:
+      - .env
     container_name: sobaco-eval-gpu
     runtime: nvidia
     environment:
@@ -24,7 +26,7 @@ services:
       - ./results:/app/results
       - ./config.yaml:/app/config.yaml
       - ./notebooks:/app/notebooks
-      - ./scripts:ro
+      - ./scripts:/app/scripts:ro
       - huggingface-cache:/root/.cache/huggingface
     working_dir: /app
     command: ["python3", "evaluate.py", "--help"]
@@ -54,7 +56,7 @@ services:
       - ./csv:/app/csv:ro
       - ./results:/app/results
       - ./config.yaml:/app/config.yaml
-      - ./scripts:ro
+      - ./scripts:/app/scripts:ro
       - ./notebooks:/app/notebooks
     working_dir: /app
     command: ["python3", "evaluate.py", "--help"]

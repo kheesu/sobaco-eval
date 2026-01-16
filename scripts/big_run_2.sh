@@ -15,7 +15,8 @@ echo "=========================================="
 
 # Define all models
 LOCAL_MODELS=(
-    "qwen-3-30b-inst"
+    "swallow-3.1-70b-inst"
+    "llama-3.1-70b-inst"
 )
 
 API_MODELS=(
@@ -24,9 +25,9 @@ API_MODELS=(
 # Define all datasets
 DATASETS=(
     "csv/ja-en_dataset.csv"
-    "csv/zh-en_dataset.csv"
-    "csv/ko-en-v2_dataset.csv"
-    "csv/zh-ko_dataset.csv"
+    "csv/ja-zh_dataset.csv"
+    "csv/ja-ja_dataset.csv"
+    "csv/ja-ko_dataset.csv"
 )
 
 # Configuration
@@ -60,7 +61,7 @@ run_evaluation() {
     echo "=========================================="
     
     # Build command
-    CMD="python3 evaluate.py --model $model --dataset $dataset --use-ollama"
+    CMD="python3 evaluate.py --model $model --dataset $dataset"
     
     if [ "$is_api" = true ]; then
         if [ "$USE_ASYNC_API" = true ]; then

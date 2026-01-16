@@ -25,6 +25,9 @@ API_MODELS=(
 # Define all datasets
 DATASETS=(
     "csv/ko-en-v2_dataset.csv"
+    "csv/ko-zh-v2_dataset.csv"
+    "csv/ko-ja-v2_dataset.csv"
+    "csv/ko-ko-v2_dataset.csv"
 )
 
 # Configuration
@@ -58,7 +61,7 @@ run_evaluation() {
     echo "=========================================="
     
     # Build command
-    CMD="python evaluate.py --model $model --dataset $dataset"
+    CMD="python3 evaluate.py --model $model --dataset $dataset"
     
     if [ "$is_api" = true ]; then
         if [ "$USE_ASYNC_API" = true ]; then
