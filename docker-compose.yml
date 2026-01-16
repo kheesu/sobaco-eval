@@ -24,6 +24,7 @@ services:
       - ./results:/app/results
       - ./config.yaml:/app/config.yaml
       - ./notebooks:/app/notebooks
+      - ./scripts:ro
       - huggingface-cache:/root/.cache/huggingface
     working_dir: /app
     command: ["python3", "evaluate.py", "--help"]
@@ -53,6 +54,7 @@ services:
       - ./csv:/app/csv:ro
       - ./results:/app/results
       - ./config.yaml:/app/config.yaml
+      - ./scripts:ro
       - ./notebooks:/app/notebooks
     working_dir: /app
     command: ["python3", "evaluate.py", "--help"]

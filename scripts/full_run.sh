@@ -15,35 +15,35 @@ echo "=========================================="
 
 # Define all models
 LOCAL_MODELS=(
-    "llama-3.1-8b-inst"
-    "llama-3.1-70b-inst"
-    "qwen-3-4b-inst"
-    "hyperclovax"
-    "hyperclovax-omni"
-    "swallow-3.1-8b-inst"
-    "swallow-3.1-70b-inst"
+  "llama-3.1-8b-inst"
+  "llama-3.1-70b-inst"
+  "qwen-3-4b-inst"
+  "hyperclovax"
+  "hyperclovax-omni"
+  "swallow-3.1-8b-inst"
+  "swallow-3.1-70b-inst"
 )
 
 API_MODELS=(
-    "gpt-5.1"
+  "gpt-5.1"
 )
 
 # Define all datasets
 DATASETS=(
-    "csv/ja-ja_dataset.csv"
-    "csv/ja-ko_dataset.csv"
-    "csv/ja-zh_dataset.csv"
-    "csv/ko-ja-v2_dataset.csv"
-    "csv/ko-ko-v2_dataset.csv"
-    "csv/ko-zh-v2_dataset.csv"
-    "csv/zh-ja_dataset.csv"
-    "csv/zh-ko_dataset.csv"
-    "csv/zh-zh_dataset.csv"
+  "csv/ja-ja_dataset.csv"
+  "csv/ja-ko_dataset.csv"
+  "csv/ja-zh_dataset.csv"
+  "csv/ko-ja-v2_dataset.csv"
+  "csv/ko-ko-v2_dataset.csv"
+  "csv/ko-zh-v2_dataset.csv"
+  "csv/zh-ja_dataset.csv"
+  "csv/zh-ko_dataset.csv"
+  "csv/zh-zh_dataset.csv"
 )
 
 # Configuration
-BATCH_SIZE=16  # Adjust based on your GPU memory
-USE_ASYNC_API=true  # Use async for API models
+BATCH_SIZE=16      # Adjust based on your GPU memory
+USE_ASYNC_API=true # Use async for API models
 MAX_CONCURRENT=10  # Max concurrent API requests
 
 # Total count
@@ -61,35 +61,35 @@ CURRENT_RUN=0
 
 # Function to run evaluation
 run_evaluation() {
-    local model=$1
-    local is_api=$2
-    
-    CURRENT_RUN=$((CURRENT_RUN + 1))
-    
-    echo ""
-    echo -e "${GREEN}[${CURRENT_RUN}/${TOTAL_RUNS}] Evaluating: $model${NC}"
-    echo "=========================================="
-    
-    # Build command
-    CMD="python evaluate.py --model $model --all-datasets"
-    
-    if [ "$is_api" = true ]; then
-        if [ "$USE_ASYNC_API" = true ]; then
-            CMD="$CMD --async-api --max-concurrent $MAX_CONCURRENT"
-        fi
-    else
-        CMD="$CMD --batch-size $BATCH_SIZE"
+  local model=$1
+  local is_api=$2
+
+  CURRENT_RUN=$((CURRENT_RUN + 1))
+
+  echo ""
+  echo -e "${GREEN}[${CURRENT_RUN}/${TOTAL_RUNS}] Evaluating: $model${NC}"
+  echo "=========================================="
+
+  # Build command
+  CMD="python evaluate.py --model $model --all-datasets"
+
+  if [ "$is_api" = true ]; then
+    if [ "$USE_ASYNC_API" = true ]; then
+      CMD="$CMD --async-api --max-concurrent $MAX_CONCURRENT"
     fi
-    
-    echo "Running: $CMD"
-    
-    # Run evaluation with all-templates flag
-    if eval $CMD --all-templates; then
-        echo -e "${GREEN}✓ Success: $model${NC}"
-    else
-        echo -e "${RED}✗ Failed: $model${NC}"
-        echo "Continuing with next model..."
-    fi
+  else
+    CMD="$CMD --batch-size $BATCH_SIZE"
+  fi
+
+  echo "Running: $CMD"
+
+  # Run evaluation with all-templates flag
+  if eval $CMD --all-templates; then
+    echo -e "${GREEN}✓ Success: $model${NC}"
+  else
+    echo -e "${RED}✗ Failed: $model${NC}"
+    echo "Continuing with next model..."
+  fi
 }
 
 # Start time
@@ -102,7 +102,7 @@ echo "Starting Local Model Evaluations"
 echo "=========================================="
 
 for model in "${LOCAL_MODELS[@]}"; do
-    run_evaluation "$model" false
+  run_evaluation "$model" false
 done
 
 # Run API models
@@ -112,7 +112,7 @@ echo "Starting API Model Evaluations"
 echo "=========================================="
 
 for model in "${API_MODELS[@]}"; do
-    run_evaluation "$model" true
+  run_evaluation "$model" true
 done
 
 # End time
