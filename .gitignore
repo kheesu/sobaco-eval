@@ -36,7 +36,7 @@ ENV/
 
 # Results and outputs
 results/**/*
-!results/old/*
+!results/old
 *.csv
 *.json
 !csv/*.csv
