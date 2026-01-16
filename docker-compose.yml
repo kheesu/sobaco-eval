@@ -1,26 +1,24 @@
 version: '3.8'
 
 services:
-  # GPU-enabled service for running local models (requires NVIDIA GPU)
   sobaco-eval-gpu:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        CUDA_VERSION: "12.1.0"
+        CUDA_VERSION: "12.8.0"
         INSTALL_CUDA: "true"
     image: sobaco-eval:gpu
-    env_file:
-      - .env
-    container_name: sobaco-eval-gpu
+    
+    ipc: host
+    
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-all}
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - HF_HOME=/root/.cache/huggingface
+    
     volumes:
       - ./csv:/app/csv:ro
       - ./results:/app/results
@@ -38,7 +36,6 @@ services:
               count: all
               capabilities: [gpu]
 
-  # CPU-only service for API-based models (GPT, Claude, Gemini)
   sobaco-eval-cpu:
     build:
       context: .
@@ -61,7 +58,6 @@ services:
     working_dir: /app
     command: ["python3", "evaluate.py", "--help"]
 
-  # Jupyter notebook service for analysis
   jupyter:
     build:
       context: .
