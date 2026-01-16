@@ -26,10 +26,10 @@ API_MODELS=(
 
 # Define all datasets
 DATASETS=(
-    "csv/ko-en-v2_dataset.csv"
-    "csv/ko-zh-v2_dataset.csv"
-    "csv/ko-ja-v2_dataset.csv"
-    "csv/ko-ko-v2_dataset.csv"
+    "csv/ja-en_dataset.csv"
+    "csv/ja-zh_dataset.csv"
+    "csv/ja-ja_dataset.csv"
+    "csv/ja-ko_dataset.csv"
 )
 
 # Configuration
