@@ -824,7 +824,21 @@ def evaluate_on_all_templates(evaluator: LLMEvaluator, dataset_path: str, config
         
         for metric_key in metric_keys:
             values = [template_metrics[t][metric_key] for t in template_metrics.keys()]
-            averaged_metrics[metric_key] = sum(values) / len(values)
+            
+            # Check if values are numeric or dictionaries
+            if isinstance(values[0], dict):
+                # For nested dictionaries (like bias_score_details), average each sub-metric
+                averaged_metrics[metric_key] = {}
+                sub_keys = values[0].keys()
+                for sub_key in sub_keys:
+                    sub_values = [v[sub_key] for v in values]
+                    averaged_metrics[metric_key][sub_key] = sum(sub_values) / len(sub_values)
+            elif isinstance(values[0], (int, float)):
+                # For numeric values, calculate simple average
+                averaged_metrics[metric_key] = sum(values) / len(values)
+            else:
+                # For other types (strings, etc.), just take the first value
+                averaged_metrics[metric_key] = values[0]
         
         print_metrics(averaged_metrics, f"{evaluator.model_name} on {Path(dataset_path).stem} (AVERAGED)")
         
