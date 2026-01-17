@@ -106,12 +106,10 @@ class VLLMModelEvaluator(LLMEvaluator):
 
     def generate_batch(self, prompts: List[str], system_prompt: str = None) -> List[str]:
         """
-        Generate responses for a batch of prompts using vLLM.
-        vLLM handles the internal batching, so we pass the whole list.
+        Optimized generation for MQA (Single Token Output).
         """
         model_config = self.config['local_models'][self.model_name]
         
-        # Check for chat template necessity
         has_chat_template = hasattr(self.tokenizer, 'chat_template') and self.tokenizer.chat_template is not None
         
         final_prompts = []
@@ -127,19 +125,30 @@ class VLLMModelEvaluator(LLMEvaluator):
             else:
                 final_prompts.append(prompt)
 
-        # Create sampling params
+        stop_token_ids = [self.tokenizer.eos_token_id]
+        if self.tokenizer.pad_token_id is not None:
+            stop_token_ids.append(self.tokenizer.pad_token_id)
+            
+        if hasattr(self.tokenizer, "convert_tokens_to_ids"):
+            try:
+                eot_id = self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+                if isinstance(eot_id, int) and eot_id not in stop_token_ids:
+                    stop_token_ids.append(eot_id)
+            except:
+                pass
+
         sampling_params = SamplingParams(
-            temperature=model_config.get('temperature', 0.1),
-            top_p=model_config.get('top_p', 0.95),
-            max_tokens=model_config.get('max_tokens', 100),
-            stop_token_ids=[self.tokenizer.eos_token_id, self.tokenizer.pad_token_id]
+            temperature=0.0,      
+            top_p=1.0,            
+            max_tokens=1,        
+            stop_token_ids=stop_token_ids,
+            
+            # OPTIONAL: Guided Decoding
+            # guided_choice=["A", "B", "C", "D", "a", "b", "c", "d"],
         )
 
-        # Generate
-        # use_tqdm=False prevents vLLM's internal progress bar from clashing with ours
         outputs = self.model.generate(final_prompts, sampling_params, use_tqdm=False)
 
-        # Extract text
         results = []
         for output in outputs:
             generated_text = output.outputs[0].text.strip()
