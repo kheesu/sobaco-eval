@@ -17,6 +17,7 @@ import torch
 import warnings
 import asyncio
 from tqdm.asyncio import tqdm as async_tqdm
+from transformers import AutoTokenizer
 
 try:
     from vllm import LLM, SamplingParams
@@ -89,6 +90,7 @@ class VLLMModelEvaluator(LLMEvaluator):
         tensor_parallel_size = self.config.get('tensor_parallel_size', 1)
         dtype = self.config.get('dtype', 'float16')
         gpu_memory_utilization = self.config.get('gpu_memory_utilization', 0.9)
+        seed = self.config.get('seed', 42) # Manual seed setting
         
         print(f"Loading vLLM model: {model_path}")
         print(f"Configuration: TP={tensor_parallel_size}, Dtype={dtype}")
@@ -101,6 +103,7 @@ class VLLMModelEvaluator(LLMEvaluator):
             trust_remote_code=True,
             enforce_eager=False, 
             max_model_len=8192,
+            seed=seed,
         )
         
         self.tokenizer = self.model.get_tokenizer()
@@ -161,6 +164,120 @@ class VLLMModelEvaluator(LLMEvaluator):
         """Wrapper for single generation"""
         return self.generate_batch([prompt], system_prompt)[0]
 
+class VLLMFTModelEvaluator(VLLMModelEvaluator):
+    """Evaluator for fine-tuned models using vLLM with LoRA adapters."""
+    
+    def load_model(self):
+        # Extract config
+        model_config = self.config['local_models'][self.model_name]
+        
+        # We need both the base model (for weights) and the adapter path (for LoRA)
+        self.base_model_path = model_config['base_model_name']  # e.g., "meta-llama/Meta-Llama-3-8B"
+        self.adapter_path = model_config.get('adapter_path') # e.g., "./checkpoint-10500"
+        
+        if not self.adapter_path:
+            raise ValueError("Config must include 'adapter_path' for VLLMFTModelEvaluator")
+
+        tensor_parallel_size = self.config.get('tensor_parallel_size', 1)
+        dtype = self.config.get('dtype', 'float16')
+        gpu_memory_utilization = self.config.get('gpu_memory_utilization', 0.9)
+        seed = self.config.get('seed', 42) # Manual seed setting
+        
+        print(f"Loading Base vLLM model: {self.base_model_path}")
+        print(f"Adapter Path: {self.adapter_path}")
+        print(f"Configuration: TP={tensor_parallel_size}, Dtype={dtype}, Seed={seed}")
+
+        # 1. Initialize Base Engine with LoRA enabled
+        self.model = LLM(
+            model=self.base_model_path,
+            tensor_parallel_size=tensor_parallel_size,
+            dtype=dtype,
+            gpu_memory_utilization=gpu_memory_utilization,
+            trust_remote_code=True,
+            enforce_eager=False, 
+            max_model_len=8192,
+            enable_lora=True,    # Required to inject adapters later
+            max_lora_rank=64,    # Adjust if your LoRA rank is higher
+            seed=seed            # Fixed seed for reproducibility
+        )
+        
+        # 2. Load Tokenizer from ADAPTER path
+        # Crucial: vLLM defaults to the base tokenizer. We must load from the 
+        # adapter path to get your specific 'chat_template.jinja' and 'special_tokens_map'.
+        print(f"Loading tokenizer from adapter: {self.adapter_path}")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.adapter_path, trust_remote_code=True)
+
+    def generate_batch(self, prompts: List[str], system_prompt: str = None) -> List[str]:
+        """
+        Optimized generation for MQA (Single Token Output) with LoRA.
+        """
+        
+        # Apply Chat Template
+        has_chat_template = hasattr(self.tokenizer, 'chat_template') and self.tokenizer.chat_template is not None
+        
+        final_prompts = []
+        for prompt in prompts:
+            if has_chat_template:
+                messages = [{"role": "user", "content": prompt}]
+                # If system prompt is supported by template, inject it here
+                if system_prompt:
+                    messages.insert(0, {"role": "system", "content": system_prompt})
+                    
+                formatted_prompt = self.tokenizer.apply_chat_template(
+                    messages, 
+                    tokenize=False, 
+                    add_generation_prompt=True
+                )
+                final_prompts.append(formatted_prompt)
+            else:
+                final_prompts.append(prompt)
+
+        # Stop Token Logic
+        stop_token_ids = [self.tokenizer.eos_token_id]
+        if self.tokenizer.pad_token_id is not None:
+            stop_token_ids.append(self.tokenizer.pad_token_id)
+            
+        if hasattr(self.tokenizer, "convert_tokens_to_ids"):
+            try:
+                eot_id = self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+                if isinstance(eot_id, int) and eot_id not in stop_token_ids:
+                    stop_token_ids.append(eot_id)
+            except:
+                pass
+
+        # 3. Define Sampling Params with Seed
+        seed = self.config.get('seed', 42)
+        sampling_params = SamplingParams(
+            temperature=0.0,       
+            top_p=1.0,             
+            max_tokens=1,          
+            stop_token_ids=stop_token_ids,
+            seed=seed  # Fixed seed for reproducibility
+        )
+
+        # 4. Create LoRA Request
+        # This tells vLLM to apply the specific adapter weights for this batch
+        # 'lora_name' can be any string ID, 'lora_int_id' must be unique per active adapter (1 is fine here)
+        lora_req = LoRARequest("my_adapter", 1, self.adapter_path)
+
+        # 5. Generate with lora_request
+        outputs = self.model.generate(
+            final_prompts, 
+            sampling_params, 
+            lora_request=lora_req, # Apply the adapter
+            use_tqdm=False
+        )
+
+        results = []
+        for output in outputs:
+            generated_text = output.outputs[0].text.strip()
+            results.append(generated_text)
+            
+        return results
+
+    def generate(self, prompt: str, system_prompt: str = None) -> str:
+        """Wrapper for single generation"""
+        return self.generate_batch([prompt], system_prompt)[0]
 
 class APIModelEvaluator(LLMEvaluator):
     """Evaluator for OpenAI API"""
@@ -535,7 +652,11 @@ def main():
                 use_async = False
         else:
             # Assume Local/vLLM
-            evaluator = VLLMModelEvaluator(model_name, config)
+            is_ft_model = config['local_models'][model_name].get('finetuned', False) 
+            if is_ft_model:
+                evaluator = VLLMFTModelEvaluator(model_name, config)
+            else:
+                evaluator = VLLMModelEvaluator(model_name, config)
             use_async = False
         
         try:

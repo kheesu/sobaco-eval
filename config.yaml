@@ -67,18 +67,22 @@ local_models:
     top_p: 0.95
 
   llama-bbq:
+    finetuned: true
     base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
     adapter_path: "./adapter/llama-bbq"
 
   llama-cbbq:
+    finetuned: true
     base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
     adapter_path: "./adapter/llama-cbbq"
 
   llama-jbbq:
+    finetuned: true
     base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
     adapter_path: "./adapter/llama-jbbq"
 
   llama-kobbq:
+    finetuned: true
     base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
     adapter_path: "./adapter/llama-kobbq"
 
