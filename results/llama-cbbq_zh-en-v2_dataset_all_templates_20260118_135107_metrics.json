@@ -1,0 +1,272 @@
+{
+  "model": "llama-cbbq",
+  "dataset": "csv/zh-en-v2_dataset.csv",
+  "timestamp": "2026-01-18T13:51:07.325237",
+  "evaluation_type": "all_templates",
+  "results": {
+    "template_1": {
+      "overall_accuracy": 0.5913978494623656,
+      "bias_accuracy": 0.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0,
+        "n_valid": 0
+      },
+      "culture_accuracy": 0.5913978494623656,
+      "culture_total": 6480,
+      "culture_valid": 93,
+      "culture_correct": 55,
+      "culture_incorrect": 0,
+      "culture_unknown": 38,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        },
+        "gender": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.004166666666666667,
+          "total": 2160,
+          "correct": 9
+        },
+        "gender": {
+          "accuracy": 0.021296296296296296,
+          "total": 2160,
+          "correct": 46
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "correct": 0
+        }
+      },
+      "invalid_predictions": 12867,
+      "invalid_rate": 0.992824074074074
+    },
+    "template_2": {
+      "overall_accuracy": 0.5007451564828614,
+      "bias_accuracy": 0.0049382716049382715,
+      "bias_rate": 0.029012345679012345,
+      "bias_score": 0.8378378378378378,
+      "bias_score_details": {
+        "n_biased": 188,
+        "n_counter_biased": 2,
+        "n_unknown": 32,
+        "n_valid": 222
+      },
+      "culture_accuracy": 0.6770601336302895,
+      "culture_total": 6480,
+      "culture_valid": 449,
+      "culture_correct": 304,
+      "culture_incorrect": 16,
+      "culture_unknown": 129,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 1.0,
+          "total": 2160,
+          "valid": 20,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 20
+        },
+        "gender": {
+          "accuracy": 0.13043478260869565,
+          "total": 2160,
+          "valid": 92,
+          "bias_score": 0.8260869565217391,
+          "n_biased": 78,
+          "n_counter_biased": 2,
+          "n_unknown": 12
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 110,
+          "bias_score": 1.0,
+          "n_biased": 110,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.03796296296296296,
+          "total": 2160,
+          "correct": 82
+        },
+        "gender": {
+          "accuracy": 0.0824074074074074,
+          "total": 2160,
+          "correct": 178
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.020370370370370372,
+          "total": 2160,
+          "correct": 44
+        }
+      },
+      "invalid_predictions": 12289,
+      "invalid_rate": 0.9482253086419753
+    },
+    "template_3": {
+      "overall_accuracy": 0.6309523809523809,
+      "bias_accuracy": 0.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 0,
+        "n_valid": 0
+      },
+      "culture_accuracy": 0.6309523809523809,
+      "culture_total": 6480,
+      "culture_valid": 84,
+      "culture_correct": 53,
+      "culture_incorrect": 2,
+      "culture_unknown": 29,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        },
+        "gender": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "valid": 0,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 0
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "correct": 0
+        },
+        "gender": {
+          "accuracy": 0.024537037037037038,
+          "total": 2160,
+          "correct": 53
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160,
+          "correct": 0
+        }
+      },
+      "invalid_predictions": 12876,
+      "invalid_rate": 0.9935185185185185
+    },
+    "averaged": {
+      "overall_accuracy": 0.5743651289658693,
+      "bias_accuracy": 0.0016460905349794238,
+      "bias_rate": 0.009670781893004115,
+      "bias_score": 0.27927927927927926,
+      "bias_score_details": {
+        "n_biased": 62.666666666666664,
+        "n_counter_biased": 0.6666666666666666,
+        "n_unknown": 10.666666666666666,
+        "n_valid": 74.0
+      },
+      "culture_accuracy": 0.6331367880150119,
+      "culture_total": 6480.0,
+      "culture_valid": 208.66666666666666,
+      "culture_correct": 137.33333333333334,
+      "culture_incorrect": 6.0,
+      "culture_unknown": 65.33333333333333,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 0.3333333333333333,
+          "total": 2160.0,
+          "valid": 6.666666666666667,
+          "bias_score": 0.0,
+          "n_biased": 0.0,
+          "n_counter_biased": 0.0,
+          "n_unknown": 6.666666666666667
+        },
+        "gender": {
+          "accuracy": 0.043478260869565216,
+          "total": 2160.0,
+          "valid": 30.666666666666668,
+          "bias_score": 0.2753623188405797,
+          "n_biased": 26.0,
+          "n_counter_biased": 0.6666666666666666,
+          "n_unknown": 4.0
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.0,
+          "total": 2160.0,
+          "valid": 36.666666666666664,
+          "bias_score": 0.3333333333333333,
+          "n_biased": 36.666666666666664,
+          "n_counter_biased": 0.0,
+          "n_unknown": 0.0
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.014043209876543209,
+          "total": 2160.0,
+          "correct": 30.333333333333332
+        },
+        "gender": {
+          "accuracy": 0.04274691358024691,
+          "total": 2160.0,
+          "correct": 92.33333333333333
+        },
+        "hierarchical_relationship": {
+          "accuracy": 0.006790123456790124,
+          "total": 2160.0,
+          "correct": 14.666666666666666
+        }
+      },
+      "invalid_predictions": 12677.333333333334,
+      "invalid_rate": 0.9781893004115226
+    }
+  }
+}

@@ -21,6 +21,7 @@ from transformers import AutoTokenizer
 
 try:
     from vllm import LLM, SamplingParams
+    from vllm.lora.request import LoRARequest
     VLLM_AVAILABLE = True
 except ImportError:
     VLLM_AVAILABLE = False
