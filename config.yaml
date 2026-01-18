@@ -66,6 +66,22 @@ local_models:
     temperature: 0.1
     top_p: 0.95
 
+  llama-bbq:
+    base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    adapter_path: "./adapter/llama-bbq"
+
+  llama-cbbq:
+    base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    adapter_path: "./adapter/llama-cbbq"
+
+  llama-jbbq:
+    base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    adapter_path: "./adapter/llama-jbbq"
+
+  llama-kobbq:
+    base_model_name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    adapter_path: "./adapter/llama-kobbq"
+
 # API-based Models
 api_models:
   gpt-5.1:
