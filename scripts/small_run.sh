@@ -20,10 +20,10 @@ API_MODELS=(
 )
 
 DATASETS=(
-    "csv/ko-en-v2_dataset.csv"
-    "csv/ko-zh-v2_dataset.csv"
-    "csv/ko-ja-v2_dataset.csv"
-    "csv/ko-ko-v2_dataset.csv"
+    "csv/zh-en-v2_dataset.csv"
+    "csv/zh-v2_dataset.csv"
+    "csv/zh-ja-v2_dataset.csv"
+    "csv/zh-ko-v2_dataset.csv"
 )
 
 BATCH_SIZE=1000  
