@@ -100,6 +100,7 @@ class VLLMModelEvaluator(LLMEvaluator):
             gpu_memory_utilization=gpu_memory_utilization,
             trust_remote_code=True,
             enforce_eager=False, 
+            max_model_len=8192,
         )
         
         self.tokenizer = self.model.get_tokenizer()
