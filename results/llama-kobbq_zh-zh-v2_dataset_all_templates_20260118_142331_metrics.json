@@ -1,0 +1,7 @@
+{
+  "model": "llama-kobbq",
+  "dataset": "zh-zh-v2_dataset.csv",
+  "timestamp": "2026-01-18T14:23:31.779981",
+  "evaluation_type": "all_templates",
+  "results": {}
+}
