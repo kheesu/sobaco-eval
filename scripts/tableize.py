@@ -7,10 +7,10 @@ with open('config.yaml', 'r', encoding='utf-8') as f:
     MODEL_LIST = list(config.get('local_models', {}).keys()) + list(config.get('api_models', {}).keys())
 
 LANG_PAIR_LIST = [
-    'zh-zh',
-    'zh-ja',
-    'zh-ko',
-    'zh-en',
+    'zh-zh-v2',
+    'zh-ja-v2',
+    'zh-ko-v2',
+    'zh-en-v2',
     'ja-zh',
     'ja-ja',
     'ja-ko',
@@ -50,7 +50,7 @@ def tableize(out_name = 'result_table.csv'):
                 else:
                     filename_dict[lang_pair] = None, None
             
-            buffer += f"Chinese,{filename_dict['zh-zh'][0]},{filename_dict['zh-ja'][0]},{filename_dict['zh-ko'][0]},,Chinese,{filename_dict['zh-zh'][1]},{filename_dict['zh-ja'][1]},{filename_dict['zh-ko'][1]}\n"
+            buffer += f"Chinese,{filename_dict['zh-zh-v2'][0]},{filename_dict['zh-ja-v2'][0]},{filename_dict['zh-ko-v2'][0]},,Chinese,{filename_dict['zh-zh-v2'][1]},{filename_dict['zh-ja-v2'][1]},{filename_dict['zh-ko-v2'][1]}\n"
             buffer += f"Japanese,{filename_dict['ja-zh'][0]},{filename_dict['ja-ja'][0]},{filename_dict['ja-ko'][0]},,Japanese,{filename_dict['ja-zh'][1]},{filename_dict['ja-ja'][1]},{filename_dict['ja-ko'][1]}\n"
             buffer += f"Korean,{filename_dict['ko-zh-v2'][0]},{filename_dict['ko-ja-v2'][0]},{filename_dict['ko-ko-v2'][0]},,Korean,{filename_dict['ko-zh-v2'][1]},{filename_dict['ko-ja-v2'][1]},{filename_dict['ko-ko-v2'][1]}\n\n"
             fp.write(buffer)
@@ -79,10 +79,10 @@ def single_table(out_name = 'single_result_table.csv'):
                 else:
                     filename_dict[lang_pair] = None, None
             
-            buffer += f"{model},Chinese,Chinese,{filename_dict['zh-zh'][0]},{filename_dict['zh-zh'][1]}\n"
-            buffer += f"{model},Chinese,Japanese,{filename_dict['zh-ja'][0]},{filename_dict['zh-ja'][1]}\n"
-            buffer += f"{model},Chinese,Korean,{filename_dict['zh-ko'][0]},{filename_dict['zh-ko'][1]}\n"
-            buffer += f"{model},Chinese,English,{filename_dict['zh-en'][0]},{filename_dict['zh-en'][1]}\n"
+            buffer += f"{model},Chinese,Chinese,{filename_dict['zh-zh-v2'][0]},{filename_dict['zh-zh-v2'][1]}\n"
+            buffer += f"{model},Chinese,Japanese,{filename_dict['zh-ja-v2'][0]},{filename_dict['zh-ja-v2'][1]}\n"
+            buffer += f"{model},Chinese,Korean,{filename_dict['zh-ko-v2'][0]},{filename_dict['zh-ko-v2'][1]}\n"
+            buffer += f"{model},Chinese,English,{filename_dict['zh-en-v2'][0]},{filename_dict['zh-en-v2'][1]}\n"
             buffer += f"{model},Japanese,Chinese,{filename_dict['ja-zh'][0]},{filename_dict['ja-zh'][1]}\n"
             buffer += f"{model},Japanese,Japanese,{filename_dict['ja-ja'][0]},{filename_dict['ja-ja'][1]}\n"
             buffer += f"{model},Japanese,Korean,{filename_dict['ja-ko'][0]},{filename_dict['ja-ko'][1]}\n"

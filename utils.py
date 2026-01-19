@@ -19,6 +19,13 @@ def load_config(config_path: str = "config.yaml") -> Dict:
     return config
 
 
+def load_cot_prompts(cot_prompts_path: str = "prompts/cot.yml") -> Dict:
+    """Load Chain-of-Thought prompts from YAML file"""
+    with open(cot_prompts_path, 'r', encoding='utf-8') as f:
+        cot_prompts = yaml.safe_load(f)
+    return cot_prompts
+
+
 def load_dataset(csv_path: str) -> pd.DataFrame:
     """Load evaluation dataset from CSV file"""
     df = pd.read_csv(csv_path)
@@ -97,6 +104,45 @@ def extract_answer(response: str, options: List[str]) -> Optional[str]:
     
     # If no match found, return None
     return None
+
+
+def extract_answer_cot(response: str, options: List[str]) -> Optional[str]:
+    """Extract selected answer from Chain-of-Thought model response
+    
+    CoT prompts ask for explanation first, then the answer after a keyword.
+    Language-specific answer keywords:
+    - Japanese: 回答: (かいとう)
+    - Chinese: 答案: (dá'àn)
+    - Korean: 답변: (dapbyeon)
+    - English: Answer:
+    """
+    response_clean = response.strip()
+    
+    # Look for answer after language-specific keywords
+    # Try multiple patterns for each language
+    answer_patterns = [
+        r'(?:Answer|answer)\s*:?\s*(\d+)',  # English
+        r'回答\s*:?\s*(\d+)',  # Japanese
+        r'答案\s*:?\s*(\d+)',  # Chinese
+        r'답변\s*:?\s*(\d+)',  # Korean
+    ]
+    
+    for pattern in answer_patterns:
+        match = re.search(pattern, response_clean)
+        if match:
+            num = int(match.group(1))
+            if 1 <= num <= len(options):
+                return options[num - 1]
+    
+    # Fallback: Look for any number after common separators
+    fallback_match = re.search(r'[:：]\s*(\d+)', response_clean)
+    if fallback_match:
+        num = int(fallback_match.group(1))
+        if 1 <= num <= len(options):
+            return options[num - 1]
+    
+    # Last resort: try the standard extraction
+    return extract_answer(response, options)
 
 
 def calculate_metrics(df: pd.DataFrame) -> Dict:

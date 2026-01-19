@@ -42,7 +42,7 @@ except ImportError:
 from utils import (
     load_config, load_dataset, format_prompt, extract_answer,
     calculate_metrics, print_metrics, create_output_dir,
-    get_dataset_language, parse_options
+    get_dataset_language, parse_options, load_cot_prompts, extract_answer_cot
 )
 
 warnings.filterwarnings('ignore')
@@ -109,11 +109,16 @@ class VLLMModelEvaluator(LLMEvaluator):
         
         self.tokenizer = self.model.get_tokenizer()
 
-    def generate_batch(self, prompts: List[str], system_prompt: str = None) -> List[str]:
+    def generate_batch(self, prompts: List[str], system_prompt: str = None, max_tokens: Optional[int] = None) -> List[str]:
         """
         Optimized generation for MQA (Single Token Output).
+        Can be configured for longer outputs by setting max_tokens parameter.
         """
         model_config = self.config['local_models'][self.model_name]
+        
+        # Use provided max_tokens, or check if CoT mode is enabled, else default to 1
+        if max_tokens is None:
+            max_tokens = self.config.get('cot_max_tokens', 1)
         
         has_chat_template = hasattr(self.tokenizer, 'chat_template') and self.tokenizer.chat_template is not None
         
@@ -145,7 +150,7 @@ class VLLMModelEvaluator(LLMEvaluator):
         sampling_params = SamplingParams(
             temperature=0.0,      
             top_p=1.0,            
-            max_tokens=1,        
+            max_tokens=max_tokens,        
             stop_token_ids=stop_token_ids,
             
             # OPTIONAL: Guided Decoding
@@ -208,10 +213,15 @@ class VLLMFTModelEvaluator(VLLMModelEvaluator):
         print(f"Loading tokenizer from adapter: {self.adapter_path}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.adapter_path, trust_remote_code=True)
 
-    def generate_batch(self, prompts: List[str], system_prompt: str = None) -> List[str]:
+    def generate_batch(self, prompts: List[str], system_prompt: str = None, max_tokens: Optional[int] = None) -> List[str]:
         """
         Optimized generation for MQA (Single Token Output) with LoRA.
+        Can be configured for longer outputs by setting max_tokens parameter.
         """
+        
+        # Use provided max_tokens, or check if CoT mode is enabled, else default to 1
+        if max_tokens is None:
+            max_tokens = self.config.get('cot_max_tokens', 1)
         
         # Apply Chat Template
         has_chat_template = hasattr(self.tokenizer, 'chat_template') and self.tokenizer.chat_template is not None
@@ -251,7 +261,7 @@ class VLLMFTModelEvaluator(VLLMModelEvaluator):
         sampling_params = SamplingParams(
             temperature=0.0,       
             top_p=1.0,             
-            max_tokens=1,          
+            max_tokens=max_tokens,          
             stop_token_ids=stop_token_ids,
             seed=seed  # Fixed seed for reproducibility
         )
@@ -586,6 +596,185 @@ def evaluate_on_all_templates(evaluator: LLMEvaluator, dataset_path: str, config
     return {'results': template_results, 'metrics': template_metrics}
 
 
+def evaluate_dataset_cot(evaluator: LLMEvaluator, dataset_path: str, config: Dict, cot_prompts: Dict, 
+                        subset_percent: Optional[float] = None, batch_size: int = 16, template_index: Optional[int] = None) -> pd.DataFrame:
+    """
+    Evaluate model on a dataset using Chain-of-Thought (CoT) prompts.
+    CoT prompts ask the model to explain its reasoning before providing the answer.
+    """
+    df = load_dataset(dataset_path)
+    
+    if subset_percent is not None:
+        original_size = len(df)
+        subset_size = max(1, int(original_size * subset_percent))
+        df = df.head(subset_size).copy()
+        print(f"Using subset: {subset_size} samples")
+    
+    language = get_dataset_language(dataset_path)
+    
+    # Map dataset language codes to CoT prompt language keys
+    lang_map = {
+        'ja': 'japanese',
+        'ko': 'korean',
+        'zh': 'chinese',
+        'en': 'english'
+    }
+    cot_lang_key = lang_map.get(language, 'japanese')
+    
+    if cot_lang_key not in cot_prompts:
+        raise ValueError(f"No CoT prompts found for language '{cot_lang_key}'")
+    
+    # Get CoT template variants for the language
+    template_variants = []
+    for i in range(1, 4):
+        template_key = f"cot_prompt_{i}"
+        if template_key in cot_prompts[cot_lang_key]:
+            template_variants.append(cot_prompts[cot_lang_key][template_key])
+            
+    if not template_variants:
+        raise ValueError(f"No CoT templates found for language '{cot_lang_key}'")
+    
+    if template_index is not None:
+        prompt_template = template_variants[template_index - 1]
+    else:
+        prompt_template = random.choice(template_variants)
+    
+    df['prediction'] = None
+    df['raw_response'] = None
+    
+    # Determine if we use batch processing (vLLM)
+    is_vllm = isinstance(evaluator, VLLMModelEvaluator)
+    
+    all_prompts = []
+    all_options = []
+    all_indices = []
+    
+    for idx, row in df.iterrows():
+        prompt = format_prompt(row, prompt_template, language)
+        options = parse_options(row['options'])
+        all_prompts.append(prompt)
+        all_options.append(options)
+        all_indices.append(idx)
+    
+    save_interval = config['evaluation'].get('save_interval', 100)
+    output_dir = create_output_dir(config['output']['results_dir'])
+
+    if is_vllm:
+        # For vLLM, use larger chunk size for better throughput
+        chunk_size = max(batch_size, 100)
+        print(f"Processing with vLLM CoT (Chunk size: {chunk_size})...")
+        
+        for i in tqdm(range(0, len(all_prompts), chunk_size), desc=f"Evaluating {evaluator.model_name} (CoT)"):
+            chunk_prompts = all_prompts[i:i+chunk_size]
+            chunk_options = all_options[i:i+chunk_size]
+            chunk_indices = all_indices[i:i+chunk_size]
+            
+            try:
+                responses = evaluator.generate_batch(chunk_prompts)
+                
+                for idx, response, options in zip(chunk_indices, responses, chunk_options):
+                    df.at[idx, 'raw_response'] = response
+                    # Use CoT-specific answer extraction
+                    prediction = extract_answer_cot(response, options)
+                    df.at[idx, 'prediction'] = prediction
+                    
+            except Exception as e:
+                print(f"Error in vLLM CoT batch: {e}")
+    
+    else:
+        # Sequential processing for APIs (if not using Async)
+        print(f"Processing sequentially (CoT)...")
+        for idx, row in tqdm(df.iterrows(), total=len(df), desc=f"Evaluating {evaluator.model_name} (CoT)"):
+            prompt = all_prompts[all_indices.index(idx)]
+            options = all_options[all_indices.index(idx)]
+            
+            try:
+                response = evaluator.generate(prompt)
+                df.at[idx, 'raw_response'] = response
+                # Use CoT-specific answer extraction
+                prediction = extract_answer_cot(response, options)
+                df.at[idx, 'prediction'] = prediction
+            except Exception as e:
+                print(f"Error at index {idx}: {e}")
+                df.at[idx, 'raw_response'] = ""
+                df.at[idx, 'prediction'] = None
+    
+    return df
+
+
+def evaluate_on_all_templates_cot(evaluator: LLMEvaluator, dataset_path: str, config: Dict, cot_prompts: Dict,
+                                 subset_percent: Optional[float] = None, batch_size: int = 16) -> Dict:
+    """
+    Evaluate model on all three CoT templates and return averaged results
+    """
+    language = get_dataset_language(dataset_path)
+    
+    # Map dataset language codes to CoT prompt language keys
+    lang_map = {
+        'ja': 'japanese',
+        'ko': 'korean',
+        'zh': 'chinese',
+        'en': 'english'
+    }
+    cot_lang_key = lang_map.get(language, 'japanese')
+    
+    num_templates = 0
+    for i in range(1, 4):
+        if f"cot_prompt_{i}" in cot_prompts.get(cot_lang_key, {}):
+            num_templates += 1
+    
+    print(f"\nEvaluating on all {num_templates} CoT templates for {dataset_path}")
+    
+    template_results = {}
+    template_metrics = {}
+    
+    for template_idx in range(1, num_templates + 1):
+        print(f"\n--- CoT Template {template_idx}/{num_templates} ---")
+        try:
+            results_df = evaluate_dataset_cot(
+                evaluator, str(dataset_path), config, cot_prompts, subset_percent, batch_size, template_index=template_idx
+            )
+            
+            metrics = calculate_metrics(results_df)
+            template_results[f"template_{template_idx}"] = results_df
+            template_metrics[f"template_{template_idx}"] = metrics
+            
+            print_metrics(metrics, f"{evaluator.model_name} (CoT Template {template_idx})")
+            
+        except Exception as e:
+            print(f"Error evaluating CoT template {template_idx}: {e}")
+            continue
+            
+    # Calculate averages
+    if template_metrics:
+        print("\n--- AVERAGED CoT RESULTS ---")
+        averaged_metrics = {}
+        # Get keys from first available metric
+        metric_keys = list(template_metrics[list(template_metrics.keys())[0]].keys())
+        
+        # Helper to recurse and average
+        def get_avg(keys, metrics_dict_list):
+            res = {}
+            for k in keys:
+                vals = [m[k] for m in metrics_dict_list if k in m]
+                if not vals: continue
+                if isinstance(vals[0], dict):
+                    res[k] = get_avg(vals[0].keys(), vals)
+                elif isinstance(vals[0], (int, float)):
+                    res[k] = sum(vals) / len(vals)
+                else:
+                    res[k] = vals[0]
+            return res
+
+        values_list = list(template_metrics.values())
+        averaged_metrics = get_avg(metric_keys, values_list)
+        
+        print_metrics(averaged_metrics, f"{evaluator.model_name} (AVERAGED CoT)")
+        template_metrics['averaged'] = averaged_metrics
+
+    return {'results': template_results, 'metrics': template_metrics}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate LLMs on SOBACO datasets")
     parser.add_argument('--model', nargs='+', required=True, help='Model name(s) to evaluate')
@@ -605,6 +794,8 @@ def main():
     
     parser.add_argument('--all-templates', action='store_true', default=True, help='Evaluate all templates')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
+    parser.add_argument('--cot', action='store_true', help='Use Chain-of-Thought (CoT) prompts from prompts/cot.yml')
+    parser.add_argument('--cot-max-tokens', type=int, default=512, help='Max tokens for CoT responses (default: 512)')
     
     args = parser.parse_args()
     
@@ -616,6 +807,14 @@ def main():
     config = load_config(args.config)
     if args.output_dir:
         config['output']['results_dir'] = args.output_dir
+    
+    # Load CoT prompts if CoT mode is enabled
+    cot_prompts = None
+    if args.cot:
+        print("Loading Chain-of-Thought prompts from prompts/cot.yml")
+        cot_prompts = load_cot_prompts()
+        # Override max_tokens for CoT evaluation
+        config['cot_max_tokens'] = args.cot_max_tokens
     
     # Inject vLLM args into config for the evaluator to access
     config['tensor_parallel_size'] = args.tensor_parallel_size
@@ -668,13 +867,24 @@ def main():
             
         for dataset_path in datasets:
             if args.all_templates:
-                all_template_results = evaluate_on_all_templates(
-                    evaluator, str(dataset_path), config, args.subset, args.batch_size, use_async
-                )
+                # Choose evaluation function based on CoT flag
+                if args.cot:
+                    if cot_prompts is None:
+                        print("Error: CoT prompts not loaded")
+                        continue
+                    all_template_results = evaluate_on_all_templates_cot(
+                        evaluator, str(dataset_path), config, cot_prompts, args.subset, args.batch_size
+                    )
+                    eval_type = 'all_templates_cot'
+                else:
+                    all_template_results = evaluate_on_all_templates(
+                        evaluator, str(dataset_path), config, args.subset, args.batch_size, use_async
+                    )
+                    eval_type = 'all_templates'
                 
                 output_dir = create_output_dir(config['output']['results_dir'])
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                base_name = f"{model_name}_{dataset_path.stem}_all_templates_{timestamp}"
+                base_name = f"{model_name}_{dataset_path.stem}_{eval_type}_{timestamp}"
                 
                 json_path = output_dir / f"{base_name}_metrics.json"
                 
@@ -682,7 +892,7 @@ def main():
                     'model': model_name,
                     'dataset': str(dataset_path),
                     'timestamp': datetime.now().isoformat(),
-                    'evaluation_type': 'all_templates',
+                    'evaluation_type': eval_type,
                     'results': all_template_results['metrics']
                 }
                 
@@ -690,7 +900,15 @@ def main():
                     json.dump(comprehensive_results, f, indent=2, ensure_ascii=False)
                 print(f"Saved metrics to {json_path}")
             else:
-                if use_async:
+                # Single template evaluation
+                if args.cot:
+                    if cot_prompts is None:
+                        print("Error: CoT prompts not loaded")
+                        continue
+                    results_df = evaluate_dataset_cot(
+                        evaluator, str(dataset_path), config, cot_prompts, args.subset, args.batch_size
+                    )
+                elif use_async:
                     results_df = asyncio.run(evaluate_dataset_async(evaluator, str(dataset_path), config, args.subset))
                 else:
                     results_df = evaluate_dataset(evaluator, str(dataset_path), config, args.subset, args.batch_size)
