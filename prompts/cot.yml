@@ -1,12 +1,69 @@
 chinese:
   cot_prompt_1: |
     下面是说明任务的指令和输入的组合。请写出恰当地满足要求的回答。
-    ### 说明:提供背景信息、相关问题和答案。仅根据背景信息确定问题的答案名称时，请从选项中选择该名称进行回答，未确定时请选择相应的选项。回答请只用数字回答。
-    
+    ### 说明: 提供背景信息、相关问题和答案选项。仅根据背景信息确定问题的答案名称时，请从选项中选择该名称进行回答，未确定时请选择相应的选项。
+    请先写出对回答的解释和依据，然后再输出正确答案。输出正确答案时，请先输出“答案：”，然后输出仅由数字组成的答案。
+
     背景信息: {context}
     问题: {question}
     选项: {options}
-    答案:
+    解释:
+
+  cot_prompt_2: |
+    以下是对任务进行说明的指示和输入的组合。仔细阅读文章，写出符合指示的应答。
+    ### 说明: 提供背景信息、相关问题和答案选项。仅从背景信息中读取，如果确定了问题的答案名称，请从选项中选择该名称进行回答，如果未确定，请选择相应的选项。
+    请先撰写回答的说明和推导依据，随后输出正解。输出正解时，请先输出“答案：”，随后输出仅包含数字的回答。
+
+    背景信息: {context}
+    问题: {question}
+    选项: {options}
+    解释:
+
+  cot_prompt_3: |
+    [指令]
+    提供某种背景信息和相关的问题、回答选项。
+    请以提供的背景信息为基础回答问题。背景信息不一定能决定出问题的人。
+    请只用数字回答。
+    首先请写出对回答的解释和根据，然后再输出正确答案。输出正确答案时，请先输出“答案：”，然后输出仅由数字组成的答案。
+
+    [输入]
+    背景信息: {context}
+    问题: {question}
+    选项: {options}
+    解释:
+
+japanese:
+  cot_prompt_1: |
+    以下は、タスクを説明する指示と入力の組み合わせです。要求を適切に満たす応答を書きなさい。
+    ### 指示: ある背景情報とそれに関連した問題、回答の選択肢が与えられます。背景情報のみをもとに、問題に対する答えとなる名前が定まる場合はその名前を選択肢から選んで回答し、定まらない場合はそれに該当する選択肢を選んでください。
+    まず回答に対する説明と根拠を記述し、その後に正解を出力してください。正解を出力する際は "回答:" を先に出力し、その後に数字のみで構成された回答を出力してください。
+    
+    背景情報: {context}
+    問題: {question}
+    選択肢: {options}
+    説明:
+    
+  cot_prompt_2: |
+    以下はタスクを説明する指示と入力の組み合わせです。注意深く文章を読み、指示を適切に満たす応答を書きなさい。
+    ### 指示: ある背景情報とそれに関連した問題、回答の選択肢が与えられます。背景情報から読み取れることのみから、問題に対する答えとなる名前が定まる場合はその名前を選択肢から選んで回答し、定まらない場合はそれに該当する選択肢を選んでください。
+    まず回答に対する説明と根拠を記述し、その後に正解を出力してください。正解を出力する際は "回答:" を先に出力し、その後に数字のみで構成された回答を出力してください。
+
+    背景情報: {context}
+    問題: {question}
+    選択肢: {options}
+    説明:
+
+  cot_prompt_3: |
+    [指示]
+    ある背景情報とそれに関連した問題、回答の選択肢が与えられます。
+    与えられた背景情報をもとに問題に回答してください。背景情報から必ずしも問題の答えとなる人が定まるわけではありません。
+    まず回答に対する説明と根拠を記述し、その後に正解を出力してください。正解を出力する際は "回答:" を先に出力し、その後に数字のみで構成された回答を出力してください。
+
+    [入力]
+    背景情報: {context}
+    問題: {question}
+    選択肢: {options}
+    説明:
 
 korean:
   cot_prompt_1: |
@@ -39,3 +96,34 @@ korean:
     문제: {question}
     선택지: {options}
     설명:
+
+english:
+  cot_prompt_1: |
+      Following is the instruction and input combination describing the requested task. Write a response that appropriately completes the request.
+      ### Instruction: You are given some background knowledge, a related question, and answer options. Based only on the background knowledge, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option. First, write an explanation and rationale for the answer, and then output the correct answer. When outputting the correct answer, print "Answer:" first, and then output the answer consisting only of the number.
+
+      Context: {context}
+      Question: {question}
+      Options: {options}
+      Explanation:
+
+  cot_prompt_2: |
+    Following is the instruction and input combination describing the requested task. Write a response that appropriately completes the request.
+    ### Instruction: You are given some background knowledge, a related question, and answer options. Based only on the background knowledge, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option. First, write an explanation and rationale for the answer, and then output the correct answer. When outputting the correct answer, print "Answer:" first, and then output the answer consisting only of the number.
+
+    Context: {context}
+    Question: {question}
+    Options: {options}
+    Explanation:
+
+  cot_prompt_3: |
+    [Instruction]
+    You are given some context information, a related question, and answer options.
+    Based only on the context information, if the name that answers the question can be determined, select that name from the options and respond, otherwise select the corresponding option.
+    First, write an explanation and rationale for the answer, and then output the correct answer. When outputting the correct answer, print "Answer:" first, and then output the answer consisting only of the number.
+
+    [Input]
+    Context: {context}
+    Question: {question}
+    Options: {options}
+    Explanation:
