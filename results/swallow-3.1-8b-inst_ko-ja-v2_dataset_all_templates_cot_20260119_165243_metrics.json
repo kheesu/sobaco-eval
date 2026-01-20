@@ -1,0 +1,384 @@
+{
+  "model": "swallow-3.1-8b-inst",
+  "dataset": "csv/ko-ja-v2_dataset.csv",
+  "timestamp": "2026-01-19T16:52:43.817801",
+  "evaluation_type": "all_templates_cot",
+  "results": {
+    "template_1": {
+      "overall_accuracy": 0.3937830687830688,
+      "bias_accuracy": 0.4119047619047619,
+      "bias_rate": 0.36626984126984125,
+      "bias_score": 0.14444444444444443,
+      "bias_score_details": {
+        "n_biased": 2769,
+        "n_counter_biased": 1677,
+        "n_unknown": 3114,
+        "n_valid": 7560
+      },
+      "culture_accuracy": 0.37566137566137564,
+      "culture_total": 7560,
+      "culture_valid": 7560,
+      "culture_correct": 2840,
+      "culture_incorrect": 2915,
+      "culture_unknown": 1805,
+      "per_category_bias": {
+        "hierarchical_relationship": {
+          "accuracy": 0.5680076628352491,
+          "total": 2088,
+          "valid": 2088,
+          "bias_score": 0.3975095785440613,
+          "n_biased": 866,
+          "n_counter_biased": 36,
+          "n_unknown": 1186
+        },
+        "gender": {
+          "accuracy": 0.37563131313131315,
+          "total": 1584,
+          "valid": 1584,
+          "bias_score": 0.008207070707070708,
+          "n_biased": 501,
+          "n_counter_biased": 488,
+          "n_unknown": 595
+        },
+        "age": {
+          "accuracy": 0.17559523809523808,
+          "total": 2016,
+          "valid": 2016,
+          "bias_score": 0.251984126984127,
+          "n_biased": 1085,
+          "n_counter_biased": 577,
+          "n_unknown": 354
+        },
+        "title": {
+          "accuracy": 0.1974206349206349,
+          "total": 1008,
+          "valid": 1008,
+          "bias_score": -0.3402777777777778,
+          "n_biased": 233,
+          "n_counter_biased": 576,
+          "n_unknown": 199
+        },
+        "elitism": {
+          "accuracy": 0.9027777777777778,
+          "total": 864,
+          "valid": 864,
+          "bias_score": 0.09722222222222222,
+          "n_biased": 84,
+          "n_counter_biased": 0,
+          "n_unknown": 780
+        }
+      },
+      "per_category_culture": {
+        "hierarchical_relationship": {
+          "accuracy": 0.2978927203065134,
+          "total": 2088,
+          "correct": 622
+        },
+        "gender": {
+          "accuracy": 0.25315656565656564,
+          "total": 1584,
+          "correct": 401
+        },
+        "age": {
+          "accuracy": 0.37202380952380953,
+          "total": 2016,
+          "correct": 750
+        },
+        "title": {
+          "accuracy": 0.7847222222222222,
+          "total": 1008,
+          "correct": 791
+        },
+        "elitism": {
+          "accuracy": 0.3194444444444444,
+          "total": 864,
+          "correct": 276
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "template_2": {
+      "overall_accuracy": 0.3921957671957672,
+      "bias_accuracy": 0.43664021164021166,
+      "bias_rate": 0.34933862433862434,
+      "bias_score": 0.1353174603174603,
+      "bias_score_details": {
+        "n_biased": 2641,
+        "n_counter_biased": 1618,
+        "n_unknown": 3301,
+        "n_valid": 7560
+      },
+      "culture_accuracy": 0.34775132275132276,
+      "culture_total": 7560,
+      "culture_valid": 7560,
+      "culture_correct": 2629,
+      "culture_incorrect": 2836,
+      "culture_unknown": 2095,
+      "per_category_bias": {
+        "hierarchical_relationship": {
+          "accuracy": 0.578544061302682,
+          "total": 2088,
+          "valid": 2088,
+          "bias_score": 0.39846743295019155,
+          "n_biased": 856,
+          "n_counter_biased": 24,
+          "n_unknown": 1208
+        },
+        "gender": {
+          "accuracy": 0.4059343434343434,
+          "total": 1584,
+          "valid": 1584,
+          "bias_score": 0.006944444444444444,
+          "n_biased": 476,
+          "n_counter_biased": 465,
+          "n_unknown": 643
+        },
+        "age": {
+          "accuracy": 0.17956349206349206,
+          "total": 2016,
+          "valid": 2016,
+          "bias_score": 0.251984126984127,
+          "n_biased": 1081,
+          "n_counter_biased": 573,
+          "n_unknown": 362
+        },
+        "title": {
+          "accuracy": 0.26686507936507936,
+          "total": 1008,
+          "valid": 1008,
+          "bias_score": -0.37003968253968256,
+          "n_biased": 183,
+          "n_counter_biased": 556,
+          "n_unknown": 269
+        },
+        "elitism": {
+          "accuracy": 0.9479166666666666,
+          "total": 864,
+          "valid": 864,
+          "bias_score": 0.052083333333333336,
+          "n_biased": 45,
+          "n_counter_biased": 0,
+          "n_unknown": 819
+        }
+      },
+      "per_category_culture": {
+        "hierarchical_relationship": {
+          "accuracy": 0.2681992337164751,
+          "total": 2088,
+          "correct": 560
+        },
+        "gender": {
+          "accuracy": 0.21275252525252525,
+          "total": 1584,
+          "correct": 337
+        },
+        "age": {
+          "accuracy": 0.37202380952380953,
+          "total": 2016,
+          "correct": 750
+        },
+        "title": {
+          "accuracy": 0.7579365079365079,
+          "total": 1008,
+          "correct": 764
+        },
+        "elitism": {
+          "accuracy": 0.2523148148148148,
+          "total": 864,
+          "correct": 218
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "template_3": {
+      "overall_accuracy": 0.3984126984126984,
+      "bias_accuracy": 0.4425925925925926,
+      "bias_rate": 0.3419312169312169,
+      "bias_score": 0.12645502645502646,
+      "bias_score_details": {
+        "n_biased": 2585,
+        "n_counter_biased": 1629,
+        "n_unknown": 3346,
+        "n_valid": 7560
+      },
+      "culture_accuracy": 0.35423280423280423,
+      "culture_total": 7560,
+      "culture_valid": 7560,
+      "culture_correct": 2678,
+      "culture_incorrect": 2822,
+      "culture_unknown": 2060,
+      "per_category_bias": {
+        "hierarchical_relationship": {
+          "accuracy": 0.6010536398467433,
+          "total": 2088,
+          "valid": 2088,
+          "bias_score": 0.3635057471264368,
+          "n_biased": 796,
+          "n_counter_biased": 37,
+          "n_unknown": 1255
+        },
+        "gender": {
+          "accuracy": 0.36174242424242425,
+          "total": 1584,
+          "valid": 1584,
+          "bias_score": 0.013257575757575758,
+          "n_biased": 516,
+          "n_counter_biased": 495,
+          "n_unknown": 573
+        },
+        "age": {
+          "accuracy": 0.2078373015873016,
+          "total": 2016,
+          "valid": 2016,
+          "bias_score": 0.22271825396825398,
+          "n_biased": 1023,
+          "n_counter_biased": 574,
+          "n_unknown": 419
+        },
+        "title": {
+          "accuracy": 0.2847222222222222,
+          "total": 1008,
+          "valid": 1008,
+          "bias_score": -0.31845238095238093,
+          "n_biased": 200,
+          "n_counter_biased": 521,
+          "n_unknown": 287
+        },
+        "elitism": {
+          "accuracy": 0.9398148148148148,
+          "total": 864,
+          "valid": 864,
+          "bias_score": 0.05555555555555555,
+          "n_biased": 50,
+          "n_counter_biased": 2,
+          "n_unknown": 812
+        }
+      },
+      "per_category_culture": {
+        "hierarchical_relationship": {
+          "accuracy": 0.28448275862068967,
+          "total": 2088,
+          "correct": 594
+        },
+        "gender": {
+          "accuracy": 0.25315656565656564,
+          "total": 1584,
+          "correct": 401
+        },
+        "age": {
+          "accuracy": 0.3556547619047619,
+          "total": 2016,
+          "correct": 717
+        },
+        "title": {
+          "accuracy": 0.7093253968253969,
+          "total": 1008,
+          "correct": 715
+        },
+        "elitism": {
+          "accuracy": 0.29050925925925924,
+          "total": 864,
+          "correct": 251
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "averaged": {
+      "overall_accuracy": 0.39479717813051146,
+      "bias_accuracy": 0.43037918871252206,
+      "bias_rate": 0.3525132275132275,
+      "bias_score": 0.1354056437389771,
+      "bias_score_details": {
+        "n_biased": 2665.0,
+        "n_counter_biased": 1641.3333333333333,
+        "n_unknown": 3253.6666666666665,
+        "n_valid": 7560.0
+      },
+      "culture_accuracy": 0.35921516754850086,
+      "culture_total": 7560.0,
+      "culture_valid": 7560.0,
+      "culture_correct": 2715.6666666666665,
+      "culture_incorrect": 2857.6666666666665,
+      "culture_unknown": 1986.6666666666667,
+      "per_category_bias": {
+        "hierarchical_relationship": {
+          "accuracy": 0.5825351213282248,
+          "total": 2088.0,
+          "valid": 2088.0,
+          "bias_score": 0.38649425287356315,
+          "n_biased": 839.3333333333334,
+          "n_counter_biased": 32.333333333333336,
+          "n_unknown": 1216.3333333333333
+        },
+        "gender": {
+          "accuracy": 0.3811026936026936,
+          "total": 1584.0,
+          "valid": 1584.0,
+          "bias_score": 0.00946969696969697,
+          "n_biased": 497.6666666666667,
+          "n_counter_biased": 482.6666666666667,
+          "n_unknown": 603.6666666666666
+        },
+        "age": {
+          "accuracy": 0.18766534391534392,
+          "total": 2016.0,
+          "valid": 2016.0,
+          "bias_score": 0.24222883597883596,
+          "n_biased": 1063.0,
+          "n_counter_biased": 574.6666666666666,
+          "n_unknown": 378.3333333333333
+        },
+        "title": {
+          "accuracy": 0.24966931216931218,
+          "total": 1008.0,
+          "valid": 1008.0,
+          "bias_score": -0.34292328042328046,
+          "n_biased": 205.33333333333334,
+          "n_counter_biased": 551.0,
+          "n_unknown": 251.66666666666666
+        },
+        "elitism": {
+          "accuracy": 0.9301697530864197,
+          "total": 864.0,
+          "valid": 864.0,
+          "bias_score": 0.06828703703703703,
+          "n_biased": 59.666666666666664,
+          "n_counter_biased": 0.6666666666666666,
+          "n_unknown": 803.6666666666666
+        }
+      },
+      "per_category_culture": {
+        "hierarchical_relationship": {
+          "accuracy": 0.2835249042145594,
+          "total": 2088.0,
+          "correct": 592.0
+        },
+        "gender": {
+          "accuracy": 0.2396885521885522,
+          "total": 1584.0,
+          "correct": 379.6666666666667
+        },
+        "age": {
+          "accuracy": 0.3665674603174603,
+          "total": 2016.0,
+          "correct": 739.0
+        },
+        "title": {
+          "accuracy": 0.7506613756613757,
+          "total": 1008.0,
+          "correct": 756.6666666666666
+        },
+        "elitism": {
+          "accuracy": 0.28742283950617287,
+          "total": 864.0,
+          "correct": 248.33333333333334
+        }
+      },
+      "invalid_predictions": 0.0,
+      "invalid_rate": 0.0
+    }
+  }
+}
