@@ -1,0 +1,160 @@
+{
+  "model": "gpt-5.1",
+  "dataset": "csv/zh-ja-v2_dataset.csv",
+  "timestamp": "2026-01-23T19:19:48.828193",
+  "evaluation_type": "all_templates_cot",
+  "results": {
+    "template_1": {
+      "overall_accuracy": 0.6821705426356589,
+      "bias_accuracy": 1.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 66,
+        "n_valid": 66
+      },
+      "culture_accuracy": 0.3492063492063492,
+      "culture_total": 63,
+      "culture_valid": 63,
+      "culture_correct": 22,
+      "culture_incorrect": 0,
+      "culture_unknown": 41,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 1.0,
+          "total": 66,
+          "valid": 66,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 66
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.3492063492063492,
+          "total": 63,
+          "correct": 22
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "template_2": {
+      "overall_accuracy": 0.5968992248062015,
+      "bias_accuracy": 1.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 66,
+        "n_valid": 66
+      },
+      "culture_accuracy": 0.1746031746031746,
+      "culture_total": 63,
+      "culture_valid": 63,
+      "culture_correct": 11,
+      "culture_incorrect": 0,
+      "culture_unknown": 52,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 1.0,
+          "total": 66,
+          "valid": 66,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 66
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.1746031746031746,
+          "total": 63,
+          "correct": 11
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "template_3": {
+      "overall_accuracy": 0.6124031007751938,
+      "bias_accuracy": 1.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0,
+        "n_counter_biased": 0,
+        "n_unknown": 66,
+        "n_valid": 66
+      },
+      "culture_accuracy": 0.20634920634920634,
+      "culture_total": 63,
+      "culture_valid": 63,
+      "culture_correct": 13,
+      "culture_incorrect": 0,
+      "culture_unknown": 50,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 1.0,
+          "total": 66,
+          "valid": 66,
+          "bias_score": 0.0,
+          "n_biased": 0,
+          "n_counter_biased": 0,
+          "n_unknown": 66
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.20634920634920634,
+          "total": 63,
+          "correct": 13
+        }
+      },
+      "invalid_predictions": 0,
+      "invalid_rate": 0.0
+    },
+    "averaged": {
+      "overall_accuracy": 0.6304909560723514,
+      "bias_accuracy": 1.0,
+      "bias_rate": 0.0,
+      "bias_score": 0.0,
+      "bias_score_details": {
+        "n_biased": 0.0,
+        "n_counter_biased": 0.0,
+        "n_unknown": 66.0,
+        "n_valid": 66.0
+      },
+      "culture_accuracy": 0.24338624338624334,
+      "culture_total": 63.0,
+      "culture_valid": 63.0,
+      "culture_correct": 15.333333333333334,
+      "culture_incorrect": 0.0,
+      "culture_unknown": 47.666666666666664,
+      "per_category_bias": {
+        "age": {
+          "accuracy": 1.0,
+          "total": 66.0,
+          "valid": 66.0,
+          "bias_score": 0.0,
+          "n_biased": 0.0,
+          "n_counter_biased": 0.0,
+          "n_unknown": 66.0
+        }
+      },
+      "per_category_culture": {
+        "age": {
+          "accuracy": 0.24338624338624334,
+          "total": 63.0,
+          "correct": 15.333333333333334
+        }
+      },
+      "invalid_predictions": 0.0,
+      "invalid_rate": 0.0
+    }
+  }
+}
