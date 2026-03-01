@@ -66,6 +66,26 @@ local_models:
     temperature: 0.1
     top_p: 0.95
 
+  llama-70b-bbq-subset:
+    finetuned: true
+    base_model_name: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+    adapter_path: "./adapter/llama-70b-bbq-subset"
+
+  llama-70b-cbbq-subset:
+    finetuned: true
+    base_model_name: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+    adapter_path: "./adapter/llama-70b-cbbq-subset"
+
+  llama-70b-jbbq-subset:
+    finetuned: true
+    base_model_name: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+    adapter_path: "./adapter/llama-70b-jbbq-subset"
+
+  llama-70b-kobbq-subset:
+    finetuned: true
+    base_model_name: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+    adapter_path: "./adapter/llama-70b-kobbq-subset"
+
   llama-70b-bbq:
     finetuned: true
     base_model_name: "meta-llama/Meta-Llama-3.1-70B-Instruct"
