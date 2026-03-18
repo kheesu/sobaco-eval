@@ -336,15 +336,27 @@ class AsyncAPIModelEvaluator(LLMEvaluator):
         if not OPENAI_AVAILABLE:
             raise ImportError("OpenAI package not installed. Install with: pip install openai")
             
-        api_key = os.getenv('OPENAI_API_KEY')
-        if not api_key:
+        self.api_key = os.getenv('OPENAI_API_KEY')
+        if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable not set")
             
-        self.client = AsyncOpenAI(api_key=api_key)
-        self.semaphore = asyncio.Semaphore(self.max_concurrent)
+        # Delay initialization of client and semaphore to ensure they bind 
+        # to the correct active event loop per asyncio.run() call
+        self.client = None
+        self.semaphore = None
+        self._loop = None
+        
+    def _ensure_async_context(self):
+        """Ensure client and semaphore are bound to current event loop"""
+        loop = asyncio.get_running_loop()
+        if self.client is None or self._loop is not loop:
+            self.client = AsyncOpenAI(api_key=self.api_key)
+            self.semaphore = asyncio.Semaphore(self.max_concurrent)
+            self._loop = loop
     
     async def generate_async(self, prompt: str, system_prompt: str = None) -> str:
         """Generate response using API asynchronously"""
+        self._ensure_async_context()
         model_config = self.config['api_models'][self.model_name]
         
         async with self.semaphore:
