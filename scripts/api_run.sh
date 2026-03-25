@@ -26,18 +26,21 @@ DATASETS=(
   "csv/ja-ja_dataset.csv"
   "csv/ja-ko_dataset.csv"
   "csv/ja-zh_dataset.csv"
+  "csv/ja-en_dataset.csv"
   "csv/ko-ja-v2_dataset.csv"
   "csv/ko-ko-v2_dataset.csv"
   "csv/ko-zh-v2_dataset.csv"
-  "csv/zh-ja_dataset.csv"
-  "csv/zh-ko_dataset.csv"
-  "csv/zh-v2_dataset.csv"
+  "csv/ko-en-v2_dataset.csv"
+  "csv/zh-zh-v2_dataset.csv"
+  "csv/zh-ja-v2_dataset.csv"
+  "csv/zh-ko-v2_dataset.csv"
+  "csv/zh-en-v2_dataset.csv"
 )
 
 # Configuration
 BATCH_SIZE=16      # Adjust based on your GPU memory
 USE_ASYNC_API=true # Use async for API models
-MAX_CONCURRENT=10  # Max concurrent API requests
+MAX_CONCURRENT=20  # Max concurrent API requests
 
 # Total count
 TOTAL_MODELS=$((${#LOCAL_MODELS[@]} + ${#API_MODELS[@]}))
@@ -65,7 +68,7 @@ run_evaluation() {
   echo "=========================================="
 
   # Build command
-  CMD="python evaluate.py --model $model --dataset $dataset"
+  CMD="python3 evaluate.py --model $model --dataset $dataset"
 
   if [ "$is_api" = true ]; then
     if [ "$USE_ASYNC_API" = true ]; then
